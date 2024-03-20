@@ -12,7 +12,7 @@ impl PixelGrid {
     }
 
     pub fn get_pixel(&mut self, x: u32, y: u32) -> &mut [u8] {
-        let base = (self.width * 3 * y + x * 3) as usize;
+        let base = (3 * (self.width * y + x)) as usize;
         &mut self.pixels[base..=base + 2]
     }
 
