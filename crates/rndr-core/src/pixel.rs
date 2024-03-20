@@ -16,6 +16,10 @@ impl PixelGrid {
         &mut self.pixels[base..=base + 2]
     }
 
+    pub fn clear(&mut self) {
+        self.pixels = self.pixels.iter().map(|_| 0).collect()
+    }
+
     pub fn get_pixel_data(&self) -> &[u8] {
         &self.pixels
     }
