@@ -6,7 +6,6 @@ use rndr_math::prelude::*;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    /*
     // Square on +y
     static ref POINTS: Vec<(V3, (u8, u8, u8))> = vec![
         (
@@ -42,7 +41,8 @@ lazy_static! {
             (0, 255, 255)
         ),
     ];
-    */
+
+    /*
 
     static ref POINTS: Vec<(V3, (u8, u8, u8))> = vec![
         (
@@ -78,6 +78,8 @@ lazy_static! {
             (0, 255, 255)
         ),
     ];
+
+    */
 }
 
 const HEIGHT: u32 = 500;
@@ -98,7 +100,7 @@ fn main() {
 }
 
 fn input(event_pump: &mut EventPump) {
-    const INCREASE: f32 = 2.0;
+    const INCREASE: f32 = 0.5;
     for event in event_pump.poll_iter() {
         match event {
             Event::Quit { timestamp: _ } => {
@@ -146,12 +148,16 @@ fn input(event_pump: &mut EventPump) {
             _ => (),
         }
     }
+
+    println!("{} {}", unsafe { CAM_TRANSFORM.position }, unsafe {
+        CAM_TRANSFORM.rotation
+    });
 }
 
 static mut CAM_TRANSFORM: Transform = Transform {
     rotation: V3 {
-        y: 90.0,
-        z: 270.0,
+        y: 0.0,
+        z: 90.0,
         x: 0.0,
     },
     position: V3 {
@@ -179,7 +185,11 @@ fn update(pixel_grid: &mut PixelGrid) {
             point.0.relative_to(unsafe { &CAM_TRANSFORM.position }),
             point.1,
         );
-        let px = world_to_screen_matrix * point.0;
+        let mut px = world_to_screen_matrix * point.0;
+
+        // px /= point.0.mag() * 0.1;
+        px.x /= px.z / 2.0;
+        px.y /= px.z / 2.0;
 
         if unsafe { HIDE_Z } && px.z < 0f32 {
             continue;

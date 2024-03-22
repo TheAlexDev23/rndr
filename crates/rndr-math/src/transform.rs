@@ -7,12 +7,12 @@ pub struct Transform {
 
 impl Transform {
     pub fn fwd(&self) -> V3 {
-        let (cos_x, cos_y, cos_z, sin_x, sin_y, sin_z) = self.trigs();
+        let (_, cos_y, cos_z, _, sin_y, sin_z) = self.trigs();
 
         V3 {
-            x: cos_z * sin_y * cos_x + sin_z * sin_x,
-            y: sin_z * sin_y * cos_y - cos_z * sin_x,
-            z: -1f32 * cos_y * cos_x,
+            x: cos_z * cos_y,
+            y: -1f32 * sin_z * cos_y,
+            z: sin_y,
         }
     }
 
@@ -27,12 +27,12 @@ impl Transform {
     }
 
     pub fn up(&self) -> V3 {
-        let (_, cos_y, cos_z, _, sin_y, sin_z) = self.trigs();
+        let (cos_x, cos_y, cos_z, sin_x, sin_y, sin_z) = self.trigs();
 
         V3 {
-            x: cos_z * cos_y,
-            y: -1f32 * sin_z * cos_y,
-            z: sin_y,
+            x: cos_z * sin_y * cos_x + sin_z * sin_x,
+            y: sin_z * sin_y * cos_y - cos_z * sin_x,
+            z: -1f32 * cos_y * cos_x,
         }
     }
 

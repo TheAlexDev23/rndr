@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -17,6 +17,10 @@ impl V3 {
 
     pub fn relative_to(&self, other: &V3) -> V3 {
         *self - *other
+    }
+
+    pub fn mag(&self) -> f32 {
+        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
     }
 }
 
@@ -89,5 +93,23 @@ impl Mul<V3> for f32 {
         rhs.y *= self;
         rhs.z *= self;
         rhs
+    }
+}
+
+impl Div<f32> for V3 {
+    type Output = V3;
+    fn div(mut self, rhs: f32) -> Self::Output {
+        self.x /= rhs;
+        self.y /= rhs;
+        self.z /= rhs;
+        self
+    }
+}
+
+impl DivAssign<f32> for V3 {
+    fn div_assign(&mut self, rhs: f32) {
+        self.x /= rhs;
+        self.y /= rhs;
+        self.z /= rhs;
     }
 }
