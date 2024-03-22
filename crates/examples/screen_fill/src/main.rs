@@ -1,3 +1,4 @@
+use rndr_core::events::Event;
 use rndr_core::pixel::PixelGrid;
 
 const HEIGHT: u32 = 500;
@@ -10,7 +11,11 @@ fn main() {
     let mut instance = rndr_core::Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT)
         .expect("Could not init rndr");
     loop {
-        instance.input();
+        for event in instance.event_pump.poll_iter() {
+            if let Event::Quit { timestamp: _ } = event {
+                panic!("Exit requested");
+            }
+        }
         update(&mut instance.pixel_grid);
         instance.render().expect("Could not render");
     }

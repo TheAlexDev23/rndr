@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Mul, Sub, SubAssign},
+    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -71,5 +71,23 @@ impl Mul<f32> for V3 {
         self.y *= rhs;
         self.z *= rhs;
         self
+    }
+}
+
+impl MulAssign<f32> for V3 {
+    fn mul_assign(&mut self, rhs: f32) {
+        self.x *= rhs;
+        self.y *= rhs;
+        self.z *= rhs;
+    }
+}
+
+impl Mul<V3> for f32 {
+    type Output = V3;
+    fn mul(self, mut rhs: V3) -> Self::Output {
+        rhs.x *= self;
+        rhs.y *= self;
+        rhs.z *= self;
+        rhs
     }
 }

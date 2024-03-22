@@ -121,7 +121,7 @@ fn input(event_pump: &mut EventPump) {
                     CAM_TRANSFORM.position -= CAM_TRANSFORM.fwd() * INCREASE;
                 },
                 Keycode::A => unsafe {
-                    CAM_TRANSFORM.position += CAM_TRANSFORM.right() * -1.0 * INCREASE;
+                    CAM_TRANSFORM.position += -1.0 * CAM_TRANSFORM.right() * INCREASE;
                 },
                 Keycode::D => unsafe {
                     CAM_TRANSFORM.position += CAM_TRANSFORM.right() * INCREASE;
