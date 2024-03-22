@@ -5,4 +5,3 @@ pub mod prelude {
     pub use super::matrix::*;
     pub use super::vector::*;
 }
-

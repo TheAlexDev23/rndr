@@ -1,11 +1,12 @@
 use sdl2::{
     render::{Texture, TextureValueError, UpdateTextureError, WindowCanvas},
     video::WindowBuildError,
-    EventPump, IntegerOrSdlError, Sdl, VideoSubsystem,
+    IntegerOrSdlError, Sdl, VideoSubsystem,
 };
 
 use thiserror::Error;
 
+use super::events::EventPump;
 use super::pixel::PixelGrid;
 
 #[derive(Error, Debug)]
@@ -34,6 +35,7 @@ pub enum RenderError {
 
 pub struct Instance {
     pub pixel_grid: PixelGrid,
+    pub event_pump: EventPump,
 
     width: u32,
     height: u32,
@@ -49,7 +51,6 @@ struct SdlInstance {
     video: VideoSubsystem,
     canvas: WindowCanvas,
     buff_texture: Texture,
-    event_pump: EventPump,
 }
 
 impl Instance {
@@ -79,28 +80,19 @@ impl Instance {
         )?;
 
         Ok(Instance {
+            pixel_grid: PixelGrid::new(buff_width, buff_height),
+            event_pump,
             width,
             height,
             buff_width,
             buff_height,
-            pixel_grid: PixelGrid::new(buff_width, buff_height),
             sdl_instance: SdlInstance {
                 sdl_ctx,
                 video,
                 buff_texture,
                 canvas,
-                event_pump,
             },
         })
-    }
-
-    pub fn input(&mut self) {
-        for event in self.sdl_instance.event_pump.poll_iter() {
-            if let sdl2::event::Event::Quit { timestamp: _ } = event {
-                // TODO: when input system would be in place handle this properly
-                panic!("Exit requested");
-            }
-        }
     }
 
     pub fn render(&mut self) -> Result<(), RenderError> {
