@@ -6,6 +6,7 @@ use rndr_math::prelude::*;
 use lazy_static::lazy_static;
 
 lazy_static! {
+    /*
     // Square on +y
     static ref POINTS: Vec<(V3, (u8, u8, u8))> = vec![
         (
@@ -41,8 +42,8 @@ lazy_static! {
             (0, 255, 255)
         ),
     ];
+    */
 
-    /*
     static ref POINTS: Vec<(V3, (u8, u8, u8))> = vec![
         (
             V3 {
@@ -77,7 +78,6 @@ lazy_static! {
             (0, 255, 255)
         ),
     ];
-    */
 }
 
 const HEIGHT: u32 = 500;
@@ -109,34 +109,34 @@ fn input(event_pump: &mut EventPump) {
                 ..
             } => match keycode {
                 Keycode::E => unsafe {
-                    CAM_POS.z += INCREASE;
+                    CAM_TRANSFORM.position += CAM_TRANSFORM.up() * INCREASE;
                 },
                 Keycode::Q => unsafe {
-                    CAM_POS.z -= INCREASE;
+                    CAM_TRANSFORM.position -= CAM_TRANSFORM.up() * INCREASE;
                 },
                 Keycode::W => unsafe {
-                    CAM_POS.x += INCREASE;
+                    CAM_TRANSFORM.position += CAM_TRANSFORM.fwd() * INCREASE;
                 },
                 Keycode::S => unsafe {
-                    CAM_POS.x -= INCREASE;
+                    CAM_TRANSFORM.position -= CAM_TRANSFORM.fwd() * INCREASE;
                 },
                 Keycode::A => unsafe {
-                    CAM_POS.y += INCREASE;
+                    CAM_TRANSFORM.position += CAM_TRANSFORM.right() * -1.0 * INCREASE;
                 },
                 Keycode::D => unsafe {
-                    CAM_POS.y -= INCREASE;
+                    CAM_TRANSFORM.position += CAM_TRANSFORM.right() * INCREASE;
                 },
                 Keycode::Left => unsafe {
-                    CAM_ROT.z += INCREASE;
+                    CAM_TRANSFORM.rotation.z += INCREASE;
                 },
                 Keycode::Right => unsafe {
-                    CAM_ROT.z -= INCREASE;
+                    CAM_TRANSFORM.rotation.z -= INCREASE;
                 },
                 Keycode::Up => unsafe {
-                    CAM_ROT.y += INCREASE;
+                    CAM_TRANSFORM.rotation.y += INCREASE;
                 },
                 Keycode::Down => unsafe {
-                    CAM_ROT.y -= INCREASE;
+                    CAM_TRANSFORM.rotation.y -= INCREASE;
                 },
                 Keycode::H => unsafe {
                     HIDE_Z = !HIDE_Z;
@@ -148,50 +148,37 @@ fn input(event_pump: &mut EventPump) {
     }
 }
 
-static mut CAM_ROT: V3 = V3 {
-    y: 90.0,
-    z: 270.0,
-    x: 0.0,
+static mut CAM_TRANSFORM: Transform = Transform {
+    rotation: V3 {
+        y: 90.0,
+        z: 270.0,
+        x: 0.0,
+    },
+    position: V3 {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    },
 };
-static mut CAM_POS: V3 = V3 {
-    x: 0.0,
-    y: 0.0,
-    z: 0.0,
-};
-
 static mut HIDE_Z: bool = false;
 
 fn update(pixel_grid: &mut PixelGrid) {
-    let (cam_x, cam_y, cam_z) = unsafe { (CAM_ROT.x, CAM_ROT.y, CAM_ROT.z) };
-
-    let cos_x = cam_x.to_radians().cos();
-    let cos_y = cam_y.to_radians().cos();
-    let cos_z = cam_z.to_radians().cos();
-
-    let sin_x = cam_x.to_radians().sin();
-    let sin_y = cam_y.to_radians().sin();
-    let sin_z = cam_z.to_radians().sin();
+    let cam_transform = unsafe { &CAM_TRANSFORM };
+    let cam_fwd = cam_transform.fwd();
+    let cam_right = cam_transform.right();
+    let cam_up = cam_transform.up();
 
     let world_to_screen_matrix = M3x3::new([
-        V3::new(
-            -1f32 * cos_z * sin_y * sin_x + sin_z * cos_x, // right
-            cos_z * cos_y,                                 // up
-            cos_z * sin_y * cos_x + sin_z * sin_x,         // fwd
-        ),
-        V3::new(
-            -1f32 * sin_z * sin_y * sin_x - cos_z * cos_x, // right
-            -1f32 * sin_z * cos_y,                         // up
-            sin_z * sin_y * cos_y - cos_z * sin_x,         // fwd
-        ),
-        V3::new(
-            -1f32 * cos_y * sin_x, // right
-            sin_y,                 // up
-            -1f32 * cos_y * cos_x, // fwd
-        ),
+        V3::new(cam_right.x, cam_up.x, cam_fwd.x),
+        V3::new(cam_right.y, cam_up.y, cam_fwd.y),
+        V3::new(cam_right.z, cam_up.z, cam_fwd.z),
     ]);
 
     for point in POINTS.iter() {
-        let point = (point.0.relative_to(unsafe { &CAM_POS }), point.1);
+        let point = (
+            point.0.relative_to(unsafe { &CAM_TRANSFORM.position }),
+            point.1,
+        );
         let px = world_to_screen_matrix * point.0;
 
         if unsafe { HIDE_Z } && px.z < 0f32 {
