@@ -138,38 +138,67 @@ fn update(pixel_grid: &mut PixelGrid) {
     let cam_right = cam_transform.right();
     let cam_up = cam_transform.up();
 
-    let world_to_screen_matrix = M3x3::new([
+    let projection_matrix = M3x3::new([
         V3::new(cam_right.x, cam_up.x, cam_fwd.x),
         V3::new(cam_right.y, cam_up.y, cam_fwd.y),
         V3::new(cam_right.z, cam_up.z, cam_fwd.z),
     ]);
 
     for shape in SHAPES.iter() {
-        let mut screen_points = HashMap::new();
-
-        for i in 0..shape.vertices.len() {
-            let point = (shape.vertices[i] + shape.transform.position)
-                .relative_to(unsafe { &CAM_TRANSFORM.position });
-            let mut px = world_to_screen_matrix * point;
-            px.x /= px.z / 2.0;
-            px.y /= px.z / 2.0;
-
-            let screen_x = px.x.round() as i32 + (BUFF_WIDTH / 2) as i32;
-            let screen_y = (BUFF_HEIGHT / 2) as i32 + px.y.round() as i32;
-
-            screen_points.insert(i, (screen_x, screen_y));
-        }
+        let mut cached_screen_points = HashMap::new();
 
         let mut i = 0;
         while i < shape.triangles.len() {
-            let first = screen_points[&shape.triangles[i]];
-            let second = screen_points[&shape.triangles[i + 1]];
-            let third = screen_points[&shape.triangles[i + 2]];
+            let first = shape.triangles[i];
+            let second = shape.triangles[i + 1];
+            let third = shape.triangles[i + 2];
 
-            pixel_grid.line(first, second, [255, 255, 255]);
-            pixel_grid.line(second, third, [255, 255, 255]);
-            pixel_grid.line(third, first, [255, 255, 255]);
+            let first = project_point(&mut cached_screen_points, &shape, first, &projection_matrix);
+            let second = project_point(
+                &mut cached_screen_points,
+                &shape,
+                second,
+                &projection_matrix,
+            );
+            let third = project_point(&mut cached_screen_points, &shape, third, &projection_matrix);
+
+            if first.2 >= 0.0 && second.2 >= 0.0 {
+                pixel_grid.line((first.0, first.1), (second.0, second.1), [255, 255, 255]);
+            }
+            if second.2 >= 0.0 && third.2 >= 0.0 {
+                pixel_grid.line((second.0, second.1), (third.0, third.1), [255, 255, 255]);
+            }
+            if third.2 >= 0.0 && first.2 >= 0.0 {
+                pixel_grid.line((third.0, third.1), (first.0, first.1), [255, 255, 255]);
+            }
             i += 3;
         }
+    }
+
+    fn project_point(
+        cache: &mut HashMap<usize, (i32, i32, f32)>,
+        shape: &Shape,
+        index: usize,
+        projection_matrix: &M3x3,
+    ) -> (i32, i32, f32) {
+        if cache.contains_key(&index) {
+            return cache[&index];
+        }
+
+        let point = (shape.vertices[index] + shape.transform.position)
+            .relative_to(unsafe { &CAM_TRANSFORM.position });
+
+        let mut px = *projection_matrix * point;
+
+        px.x /= px.z / 2.0;
+        px.y /= px.z / 2.0;
+
+        let screen_x = px.x.round() as i32 + (BUFF_WIDTH / 2) as i32;
+        let screen_y = (BUFF_HEIGHT / 2) as i32 + px.y.round() as i32;
+
+        let ret = (screen_x, screen_y, px.z);
+
+        cache.insert(index, ret);
+        ret
     }
 }
