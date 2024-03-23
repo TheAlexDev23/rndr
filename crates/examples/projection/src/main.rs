@@ -148,7 +148,8 @@ fn update(pixel_grid: &mut PixelGrid) {
         let mut screen_points = HashMap::new();
 
         for i in 0..shape.vertices.len() {
-            let point = shape.vertices[i].relative_to(unsafe { &CAM_TRANSFORM.position });
+            let point = (shape.vertices[i] + shape.transform.position)
+                .relative_to(unsafe { &CAM_TRANSFORM.position });
             let mut px = world_to_screen_matrix * point;
             px.x /= px.z / 2.0;
             px.y /= px.z / 2.0;
@@ -156,16 +157,7 @@ fn update(pixel_grid: &mut PixelGrid) {
             let screen_x = px.x.round() as i32 + (BUFF_WIDTH / 2) as i32;
             let screen_y = (BUFF_HEIGHT / 2) as i32 + px.y.round() as i32;
 
-            let (psx, psy) = (screen_x, screen_y);
-
-            let (screen_x, screen_y) = (screen_x as u32, screen_y as u32);
             screen_points.insert(i, (screen_x, screen_y));
-
-            /*
-            if screen_x == 4294967282 || screen_y == 4294967282 {
-                println!("{point} -> ({}, {}, {}) -> ({psx}, {psy})-> ({screen_x}, {screen_y})\n{world_to_screen_matrix:.5?}\n", px.x, px.y, px.z);
-            }
-            */
         }
 
         let mut i = 0;
@@ -179,7 +171,5 @@ fn update(pixel_grid: &mut PixelGrid) {
             pixel_grid.line(third, first, [255, 255, 255]);
             i += 3;
         }
-
-        // println!("{screen_points:?}\n{world_to_screen_matrix:?}\n");
     }
 }
