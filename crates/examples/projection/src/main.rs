@@ -57,13 +57,6 @@ fn main() {
         .expect("Could not init rndr");
     loop {
         update(&mut instance.pixel_grid);
-        //1: (95, 40), 0: (95, 50) 2: (105, 40), 3: (105, 50
-        // instance.pixel_grid.line((95, 40), (95, 50), [255, 255, 255]);
-        // instance.pixel_grid.line((105, 40), (105, 50), [255, 255, 255]);
-        // instance .pixel_grid .line((25, 15), (26, 50), [255, 255, 255]); instance .pixel_grid .line((25, 35), (15, 49), [255, 255, 255]); input(&mut instance.event_pump);
-        // instance.pixel_grid.line((25, 0), (15, 15), [255, 255, 255]);
-        // instance.pixel_grid.line((35, 0), (35, 15), [255, 255, 255]);
-        // instance.pixel_grid.line((0, 0), (15, 25), [255, 255, 255]);
         input(&mut instance.event_pump);
         instance.render().expect("Could not render");
         instance.pixel_grid.clear()
