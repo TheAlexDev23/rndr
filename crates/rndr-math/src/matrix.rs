@@ -2,7 +2,7 @@ use std::ops::Mul;
 
 use crate::prelude::V3;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct M3x3 {
     pub columns: [V3; 3],
 }
