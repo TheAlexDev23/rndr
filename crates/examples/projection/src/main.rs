@@ -67,6 +67,7 @@ lazy_static! {
         */
     ];
 }
+
 const HEIGHT: u32 = 500;
 const WIDTH: u32 = 1000;
 
@@ -173,7 +174,7 @@ static mut CAM_TRANSFORM: Transform = Transform {
     },
 };
 
-const NEAR_PLANE: f32 = 0.0;
+const NEAR_PLANE: f32 = 0.1;
 
 fn update(pixel_grid: &mut PixelGrid) {
     let cam_transform = unsafe { &CAM_TRANSFORM };
@@ -204,16 +205,75 @@ fn update(pixel_grid: &mut PixelGrid) {
                 &projection_matrix,
             );
             let third = project_point(&mut cached_screen_points, &shape, third, &projection_matrix);
-            if first.2 >= NEAR_PLANE && second.2 >= NEAR_PLANE {
-                pixel_grid.line((first.0, first.1), (second.0, second.1), [255, 255, 255]);
+
+            if first.z <= NEAR_PLANE || second.z <= NEAR_PLANE || third.z <= NEAR_PLANE {
+                i += 3;
+                continue;
             }
-            if second.2 >= NEAR_PLANE && third.2 >= NEAR_PLANE {
-                pixel_grid.line((second.0, second.1), (third.0, third.1), [255, 255, 255]);
-            }
-            if third.2 >= NEAR_PLANE && first.2 >= NEAR_PLANE {
-                pixel_grid.line((third.0, third.1), (first.0, first.1), [255, 255, 255]);
-            }
+
+            let first = (first.x, first.y);
+            let second = (second.x, second.y);
+            let third = (third.x, third.y);
+
+            draw_triangle(first, second, third, pixel_grid);
+
             i += 3;
+        }
+    }
+}
+
+fn draw_triangle(
+    first: (f32, f32),
+    second: (f32, f32),
+    third: (f32, f32),
+    pixel_grid: &mut PixelGrid,
+) {
+    let total_triangle_area = triangle_area(first, second, third);
+
+    let screen_width = (BUFF_WIDTH / 2) as f32;
+    let screen_height = (BUFF_HEIGHT / 2) as f32;
+
+    let x_start = first
+        .0
+        .min(second.0)
+        .min(third.0)
+        .max(-1.0 * screen_width)
+        .round() as i32;
+
+    let x_end = first.0.max(second.0).max(third.0).min(screen_width).round() as i32;
+
+    let y_start = first
+        .1
+        .min(second.1)
+        .min(third.1)
+        .max(-1.0 * screen_height)
+        .round() as i32;
+
+    let y_end = first
+        .1
+        .max(second.1)
+        .max(third.1)
+        .min(screen_height)
+        .round() as i32;
+
+    for x in x_start..x_end {
+        for y in y_start..y_end {
+            let pt = (x as f32, y as f32);
+
+            let comparing = triangle_area(pt, first, second)
+                + triangle_area(pt, first, third)
+                + triangle_area(pt, third, second);
+
+            const EPILIPSON: f32 = 0.01;
+
+            if (comparing - total_triangle_area).abs() <= EPILIPSON {
+                let screen_x = x + screen_width as i32;
+                let screen_y = screen_height as i32 + y;
+                let px = pixel_grid.get_pixel(screen_x as u32, screen_y as u32);
+                px[0] = 255;
+                px[1] = 255;
+                px[2] = 255;
+            }
         }
     }
 }
@@ -223,7 +283,6 @@ const PERSPECTIVE: bool = true;
 
 const BOGUS_X: f32 = 0.0;
 const BOGUS_Y: f32 = 0.0;
-// const BOGUS_Z: f32 = -15.0;
 const BOGUS_Z: f32 = -15.0;
 
 lazy_static! {
@@ -231,11 +290,11 @@ lazy_static! {
 }
 
 fn project_point(
-    cache: &mut HashMap<usize, (i32, i32, f32)>,
+    cache: &mut HashMap<usize, V3>,
     shape: &Shape,
     index: usize,
     projection_matrix: &M3x3,
-) -> (i32, i32, f32) {
+) -> V3 {
     if cache.contains_key(&index) {
         return cache[&index];
     }
@@ -253,11 +312,10 @@ fn project_point(
         px.y = DISPLAY_SURFACE_REL_PINHOLE.z / px.z * px.y + DISPLAY_SURFACE_REL_PINHOLE.y;
     }
 
-    let screen_x = px.x.round() as i32 + (BUFF_WIDTH / 2) as i32;
-    let screen_y = (BUFF_HEIGHT / 2) as i32 + px.y.round() as i32;
+    cache.insert(index, px);
+    px
+}
 
-    let ret = (screen_x, screen_y, px.z);
-
-    cache.insert(index, ret);
-    ret
+fn triangle_area(p1: (f32, f32), p2: (f32, f32), p3: (f32, f32)) -> f32 {
+    0.5 * ((p1.0 * (p2.1 - p3.1) + p2.0 * (p3.1 - p1.1) + p3.0 * (p1.1 - p2.1)).abs())
 }
