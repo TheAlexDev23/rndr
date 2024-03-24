@@ -1,3 +1,5 @@
+use crate::{prelude::Camera, Object};
+
 use sdl2::{
     mouse::MouseUtil,
     render::{Texture, TextureValueError, UpdateTextureError, WindowCanvas},
@@ -44,6 +46,8 @@ pub struct Instance {
     buff_width: u32,
     buff_height: u32,
 
+    scene_context: SceneContext,
+
     sdl_instance: SdlInstance,
 }
 
@@ -53,6 +57,11 @@ struct SdlInstance {
     canvas: WindowCanvas,
     buff_texture: Texture,
     mouse: MouseUtil,
+}
+
+pub(crate) struct SceneContext {
+    pub camera: Camera,
+    pub objects: Vec<Object>,
 }
 
 impl Instance {
@@ -91,6 +100,10 @@ impl Instance {
             height,
             buff_width,
             buff_height,
+            scene_context: SceneContext {
+                camera: Camera::new(true),
+                objects: Vec::new(),
+            },
             sdl_instance: SdlInstance {
                 sdl_ctx,
                 video,
@@ -101,19 +114,38 @@ impl Instance {
         })
     }
 
-    pub fn render(&mut self) -> Result<(), RenderError> {
+    pub fn register_object(&mut self, object: Object) -> &mut Object {
+        self.scene_context.objects.push(object);
+        self.scene_context.objects.last_mut().unwrap()
+    }
+
+    pub fn get_camera(&mut self) -> &mut Camera {
+        &mut self.scene_context.camera
+    }
+
+    pub fn render(&mut self) {
+        crate::render::render_scene(
+            &mut self.pixel_grid,
+            &mut self.scene_context,
+            self.buff_width,
+            self.buff_height,
+        );
+    }
+
+    pub fn apply_render(&mut self) -> Result<(), RenderError> {
         self.sdl_instance.buff_texture.update(
             None,
             self.pixel_grid.get_pixel_data(),
             (self.buff_width * 3) as usize,
         )?;
 
-        self.sdl_instance.canvas.clear();
         self.sdl_instance
             .canvas
             .copy(&self.sdl_instance.buff_texture, None, None)
             .map_err(RenderError::SdlCanvasCopy)?;
         self.sdl_instance.canvas.present();
+
+        self.pixel_grid.clear();
 
         Ok(())
     }

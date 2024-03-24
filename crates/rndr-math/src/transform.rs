@@ -1,5 +1,6 @@
 use super::prelude::V3;
 
+#[derive(Default, Clone)]
 pub struct Transform {
     pub position: V3,
     pub rotation: V3,

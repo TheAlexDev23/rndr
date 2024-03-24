@@ -17,7 +17,8 @@ fn main() {
             }
         }
         update(&mut instance.pixel_grid);
-        instance.render().expect("Could not render");
+        instance.render();
+        instance.apply_render().expect("Could not render");
     }
 }
 
