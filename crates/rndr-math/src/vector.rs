@@ -3,6 +3,8 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
+use crate::prelude::M3x3;
+
 #[derive(Debug, Default, Clone, Copy)]
 pub struct V3 {
     pub x: f32,
@@ -21,6 +23,44 @@ impl V3 {
 
     pub fn mag(&self) -> f32 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
+    }
+
+    pub fn norm(&self) -> V3 {
+        *self / self.mag()
+    }
+
+    pub fn normalize(&mut self) {
+        *self = self.norm()
+    }
+
+    pub fn rotate(&mut self, angle: V3) {
+        let a = angle.z;
+        let b = angle.y;
+        let y = angle.x;
+
+        let sin_a = a.to_radians().sin();
+        let sin_b = b.to_radians().sin();
+        let sin_y = y.to_radians().sin();
+
+        let cos_a = a.to_radians().cos();
+        let cos_b = b.to_radians().cos();
+        let cos_y = y.to_radians().cos();
+
+        let rotation_matrix = M3x3::new([
+            V3::new(cos_a * cos_b, sin_a * cos_b, -1.0 * sin_b),
+            V3::new(
+                cos_a * sin_b * sin_y - sin_a * cos_y,
+                sin_a * sin_b * sin_y + cos_a * cos_y,
+                sin_b * sin_y,
+            ),
+            V3::new(
+                cos_a * sin_b * cos_y + sin_a * sin_y,
+                sin_a * sin_b * cos_y - cos_a * sin_y,
+                cos_b * cos_y,
+            ),
+        ]);
+
+        *self = rotation_matrix * *self;
     }
 }
 

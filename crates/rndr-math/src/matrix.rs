@@ -19,3 +19,10 @@ impl Mul<V3> for M3x3 {
         self.columns[0] * rhs.x + self.columns[1] * rhs.y + self.columns[2] * rhs.z
     }
 }
+
+impl Mul<M3x3> for V3 {
+    type Output = V3;
+    fn mul(self, rhs: M3x3) -> Self::Output {
+        rhs * self
+    }
+}

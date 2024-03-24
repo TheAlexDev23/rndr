@@ -1,4 +1,5 @@
 use sdl2::{
+    mouse::MouseUtil,
     render::{Texture, TextureValueError, UpdateTextureError, WindowCanvas},
     video::WindowBuildError,
     IntegerOrSdlError, Sdl, VideoSubsystem,
@@ -51,6 +52,7 @@ struct SdlInstance {
     video: VideoSubsystem,
     canvas: WindowCanvas,
     buff_texture: Texture,
+    mouse: MouseUtil,
 }
 
 impl Instance {
@@ -65,12 +67,15 @@ impl Instance {
         let window = video
             .window("Test", width, height)
             .position_centered()
+            .input_grabbed()
             .build()?;
 
         let canvas = window
             .into_canvas()
             .build()
             .map_err(InitError::SdlCanvasInit)?;
+
+        let mouse = sdl_ctx.mouse();
 
         let event_pump = sdl_ctx.event_pump().map_err(InitError::SdlEventPumpInit)?;
         let buff_texture = canvas.create_texture_streaming(
@@ -91,6 +96,7 @@ impl Instance {
                 video,
                 buff_texture,
                 canvas,
+                mouse,
             },
         })
     }
@@ -110,5 +116,13 @@ impl Instance {
         self.sdl_instance.canvas.present();
 
         Ok(())
+    }
+
+    pub fn center_mouse(&mut self) {
+        self.sdl_instance.mouse.warp_mouse_in_window(
+            self.sdl_instance.canvas.window_mut(),
+            (self.width) as i32 - 25,
+            (self.height) as i32 - 25,
+        );
     }
 }
