@@ -29,6 +29,7 @@ lazy_static! {
         }
     ];
     static ref SHAPES: Vec<Object> = vec![
+        /*
         Object {
             transform: Transform {
                 position: V3::new(0.0, 2.5, 0.0),
@@ -37,8 +38,8 @@ lazy_static! {
             vertices: SQUARE.clone(),
             triangles: vec![0, 1, 2, 0, 3, 2]
         },
-        /*
-        Shape {
+        */
+        Object {
             transform: Transform {
                 position: V3::new(2.5, 0.0, 0.0),
                 rotation: V3::new(0.0, 0.0, 90.0),
@@ -46,7 +47,8 @@ lazy_static! {
             vertices: SQUARE.clone(),
             triangles: vec![0, 1, 2, 0, 3, 2]
         },
-        Shape {
+        /*
+        Object {
             transform: Transform {
                 position: V3::new(0.0, -2.5, 0.0),
                 rotation: V3::new(0.0, 0.0, 0.0),
@@ -54,7 +56,7 @@ lazy_static! {
             vertices: SQUARE.clone(),
             triangles: vec![0, 1, 2, 0, 3, 2]
         },
-        Shape {
+        Object {
             transform: Transform {
                 position: V3::new(-2.5, 0.0, 0.0),
                 rotation: V3::new(0.0, 0.0, 90.0),
@@ -145,10 +147,10 @@ fn handle_input_event(event: Event, instance: &mut rndr_core::Instance) {
                     cam_transform.position -= cam_transform.fwd() * INCREASE_POSITION;
                 }
                 Keycode::A => {
-                    cam_transform.position += -1.0 * cam_transform.right() * INCREASE_POSITION;
+                    cam_transform.position += cam_transform.right() * INCREASE_POSITION;
                 }
                 Keycode::D => {
-                    cam_transform.position += cam_transform.right() * INCREASE_POSITION;
+                    cam_transform.position -= cam_transform.right() * INCREASE_POSITION;
                 }
                 Keycode::Left => {
                     cam_transform.rotation.z += INCREASE_ROTATION;

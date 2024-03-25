@@ -23,21 +23,15 @@ pub fn render_scene(
                     .camera
                     .project_point(&mut cached_screen_points, &object, first);
 
-            let (second, third) = unsafe {
-                let second = scene_context.camera.project_point_unsafe(
-                    &mut cached_screen_points,
-                    &object,
-                    second,
-                );
+            let second =
+                scene_context
+                    .camera
+                    .project_point(&mut cached_screen_points, &object, second);
 
-                let third = scene_context.camera.project_point_unsafe(
-                    &mut cached_screen_points,
-                    &object,
-                    third,
-                );
-
-                (second, third)
-            };
+            let third =
+                scene_context
+                    .camera
+                    .project_point(&mut cached_screen_points, &object, third);
 
             let near_plane = scene_context.camera.near_plane;
 
