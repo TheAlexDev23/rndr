@@ -17,17 +17,17 @@ lazy_static! {
             2.5,
             0.0,
             5.0,
-        ), [255, 0, 255]),
+        ), [255, 0, 0]),
         Vertex::new_with_color(V3::new(
              -2.5,
              0.0,
              5.0,
-        ), [255, 255, 0]),
+        ), [0, 255, 0]),
         Vertex::new_with_color(V3::new(
             -2.5,
             0.0,
             0.0,
-        ), [255, 0, 0]),
+        ), [0, 0, 255]),
     ];
 
     static ref SHAPES: Vec<Object> = vec![
