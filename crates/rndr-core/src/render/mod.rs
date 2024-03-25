@@ -4,6 +4,7 @@ pub mod shader;
 
 pub use camera::Camera;
 pub use pixel::PixelGrid;
+use rndr_math::vector::V3;
 pub use shader::FragData;
 pub use shader::FragShader;
 
@@ -77,15 +78,36 @@ impl RenderContext {
                     let second = object.vertices[second_i];
                     let third = object.vertices[third_i];
 
-                    let mut data = FragData {
-                        vertex: Vertex::interpolate((first, f), (second, s), (third, t)),
-                    };
+                    let interpolated_color =
+                        Vertex::interpolate_color((first, f), (second, s), (third, t));
 
-                    for shader in self.shaders.iter() {
-                        shader.frag(&mut data);
+                    if !self.shaders.is_empty() {
+                        let relative_position = V3::interpolate3(
+                            (first.position, f),
+                            (second.position, s),
+                            (third.position, t),
+                        );
+
+                        let space_position = V3::interpolate3(
+                            (first.position + object.transform.position, f),
+                            (second.position + object.transform.position, s),
+                            (third.position + object.transform.position, t),
+                        );
+
+                        let mut data = FragData {
+                            relative_position,
+                            space_position,
+                            vertex_color: interpolated_color,
+                        };
+
+                        for shader in self.shaders.iter() {
+                            shader.frag(&mut data);
+                        }
+
+                        data.vertex_color
+                    } else {
+                        interpolated_color
                     }
-
-                    data.vertex.color
                 });
 
                 i += 3;

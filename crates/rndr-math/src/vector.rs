@@ -64,6 +64,10 @@ impl V3 {
 
         rotation_matrix * *self
     }
+
+    pub fn interpolate3(v1: (V3, f32), v2: (V3, f32), v3: (V3, f32)) -> V3 {
+        v1.0 * v1.1 + v2.0 * v2.1 + v3.0 * v3.1
+    }
 }
 
 impl Display for V3 {
