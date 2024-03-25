@@ -4,13 +4,12 @@ pub mod shader;
 
 pub use camera::Camera;
 pub use pixel::PixelGrid;
+pub use shader::FragData;
 pub use shader::FragShader;
 
 use std::collections::HashMap;
 
 use crate::prelude::SceneContext;
-
-use self::shader::FragData;
 
 pub(crate) struct RenderContext {
     pub pixel_grid: PixelGrid,
@@ -30,6 +29,10 @@ impl RenderContext {
             buff_width,
             buff_height,
         }
+    }
+
+    pub fn register_frag_shader(&mut self, shader: Box<dyn FragShader>) {
+        self.shaders.push(shader);
     }
 
     pub fn render(&mut self, scene_context: &mut SceneContext) {

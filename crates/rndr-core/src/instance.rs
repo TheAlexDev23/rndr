@@ -8,7 +8,7 @@ use sdl2::{
 
 use thiserror::Error;
 
-use crate::prelude::{Camera, Object, RenderContext, SceneContext};
+use crate::prelude::{Camera, FragShader, Object, RenderContext, SceneContext};
 use crate::{events::EventPump, prelude::PixelGrid};
 
 #[derive(Error, Debug)]
@@ -122,6 +122,10 @@ impl Instance {
         self.render_context.pixel_grid.clear();
 
         Ok(())
+    }
+
+    pub fn register_frag_shader(&mut self, shader: Box<dyn FragShader>) {
+        self.render_context.register_frag_shader(shader);
     }
 
     pub fn register_object(&mut self, object: Object) -> &mut Object {
