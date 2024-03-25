@@ -28,35 +28,27 @@ pub enum InitError {
     SdlEventPumpInit(String),
 }
 
-#[derive(Error, Debug)]
-pub enum RenderError {
-    #[error("Could not update buffer texture: {0}")]
-    SdlUpdateTexture(#[from] UpdateTextureError),
-    #[error("Could not copy buffer texture to canvas: {0}")]
-    SdlCanvasCopy(String),
-}
-
 pub struct Instance {
     pub pixel_grid: PixelGrid,
     pub event_pump: EventPump,
 
-    width: u32,
-    height: u32,
+    pub(crate) width: u32,
+    pub(crate) height: u32,
 
-    buff_width: u32,
-    buff_height: u32,
+    pub(crate) buff_width: u32,
+    pub(crate) buff_height: u32,
 
-    scene_context: SceneContext,
+    pub(crate) scene_context: SceneContext,
 
-    sdl_instance: SdlInstance,
+    pub(crate) sdl_instance: SdlInstance,
 }
 
-struct SdlInstance {
-    sdl_ctx: Sdl,
-    video: VideoSubsystem,
-    canvas: WindowCanvas,
-    buff_texture: Texture,
-    mouse: MouseUtil,
+pub(crate) struct SdlInstance {
+    pub(crate) sdl_ctx: Sdl,
+    pub(crate) video: VideoSubsystem,
+    pub(crate) canvas: WindowCanvas,
+    pub(crate) buff_texture: Texture,
+    pub(crate) mouse: MouseUtil,
 }
 
 pub(crate) struct SceneContext {
@@ -121,33 +113,6 @@ impl Instance {
 
     pub fn get_camera(&mut self) -> &mut Camera {
         &mut self.scene_context.camera
-    }
-
-    pub fn render(&mut self) {
-        crate::render::render_scene(
-            &mut self.pixel_grid,
-            &mut self.scene_context,
-            self.buff_width,
-            self.buff_height,
-        );
-    }
-
-    pub fn apply_render(&mut self) -> Result<(), RenderError> {
-        self.sdl_instance.buff_texture.update(
-            None,
-            self.pixel_grid.get_pixel_data(),
-            (self.buff_width * 3) as usize,
-        )?;
-
-        self.sdl_instance
-            .canvas
-            .copy(&self.sdl_instance.buff_texture, None, None)
-            .map_err(RenderError::SdlCanvasCopy)?;
-        self.sdl_instance.canvas.present();
-
-        self.pixel_grid.clear();
-
-        Ok(())
     }
 
     pub fn center_mouse(&mut self) {
