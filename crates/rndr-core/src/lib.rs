@@ -1,18 +1,11 @@
-pub mod camera;
 pub mod instance;
-pub mod object;
-pub mod pixel;
-
-pub use instance::Instance;
-pub use object::Object;
-
-mod render;
+pub mod render;
+pub mod scene;
 
 pub mod prelude {
-    pub use super::camera::*;
     pub use super::instance::*;
-    pub use super::object::*;
-    pub use super::pixel::*;
+    pub use super::render::*;
+    pub use super::scene::*;
 }
 
 pub mod events {

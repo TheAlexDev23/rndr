@@ -1,5 +1,5 @@
 use rndr_core::events::{Event, Keycode};
-use rndr_core::prelude::Object;
+use rndr_core::prelude::{Instance, Object};
 
 use rndr_math::prelude::*;
 
@@ -75,8 +75,8 @@ const BUFF_HEIGHT: u32 = 200;
 const BUFF_WIDTH: u32 = 400;
 
 fn main() {
-    let mut instance = rndr_core::Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT)
-        .expect("Could not init rndr");
+    let mut instance =
+        Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
 
     for object in SHAPES.iter() {
         instance.register_object(object.clone());
@@ -107,7 +107,7 @@ fn handle_fps(timer: &mut std::time::Instant, frames: &mut i32) {
     }
 }
 
-fn handle_input_event(event: Event, instance: &mut rndr_core::Instance) {
+fn handle_input_event(event: Event, instance: &mut Instance) {
     const INCREASE_ROTATION: f32 = 0.1;
     const INCREASE_POSITION: f32 = 0.2;
     let cam_transform = &mut instance.get_camera().transform;

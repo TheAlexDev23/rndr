@@ -1,16 +1,15 @@
-use crate::{prelude::Camera, Object};
-
 use sdl2::{
     mouse::MouseUtil,
-    render::{Texture, TextureValueError, UpdateTextureError, WindowCanvas},
+    render::UpdateTextureError,
+    render::{Texture, TextureValueError, WindowCanvas},
     video::WindowBuildError,
     IntegerOrSdlError, Sdl, VideoSubsystem,
 };
 
 use thiserror::Error;
 
-use super::events::EventPump;
-use super::pixel::PixelGrid;
+use crate::prelude::{Camera, Object, RenderContext, SceneContext};
+use crate::{events::EventPump, prelude::PixelGrid};
 
 #[derive(Error, Debug)]
 pub enum InitError {
@@ -28,8 +27,15 @@ pub enum InitError {
     SdlEventPumpInit(String),
 }
 
+#[derive(Error, Debug)]
+pub enum RenderError {
+    #[error("Could not update buffer texture: {0}")]
+    SdlUpdateTexture(#[from] UpdateTextureError),
+    #[error("Could not copy buffer texture to canvas: {0}")]
+    SdlCanvasCopy(String),
+}
+
 pub struct Instance {
-    pub pixel_grid: PixelGrid,
     pub event_pump: EventPump,
 
     pub(crate) width: u32,
@@ -38,22 +44,18 @@ pub struct Instance {
     pub(crate) buff_width: u32,
     pub(crate) buff_height: u32,
 
+    pub(crate) render_context: RenderContext,
     pub(crate) scene_context: SceneContext,
 
     pub(crate) sdl_instance: SdlInstance,
 }
 
 pub(crate) struct SdlInstance {
-    pub(crate) sdl_ctx: Sdl,
-    pub(crate) video: VideoSubsystem,
-    pub(crate) canvas: WindowCanvas,
-    pub(crate) buff_texture: Texture,
-    pub(crate) mouse: MouseUtil,
-}
-
-pub(crate) struct SceneContext {
-    pub camera: Camera,
-    pub objects: Vec<Object>,
+    pub sdl_ctx: Sdl,
+    pub video: VideoSubsystem,
+    pub canvas: WindowCanvas,
+    pub buff_texture: Texture,
+    pub mouse: MouseUtil,
 }
 
 impl Instance {
@@ -86,14 +88,13 @@ impl Instance {
         )?;
 
         Ok(Instance {
-            pixel_grid: PixelGrid::new(buff_width, buff_height),
             event_pump,
             width,
             height,
             buff_width,
             buff_height,
+            render_context: RenderContext::new(buff_width, buff_height),
             scene_context: SceneContext {
-                camera: Camera::new(true),
                 objects: Vec::new(),
             },
             sdl_instance: SdlInstance {
@@ -106,13 +107,39 @@ impl Instance {
         })
     }
 
+    pub fn render(&mut self) {
+        self.render_context.render(&mut self.scene_context);
+    }
+
+    pub fn apply_render(&mut self) -> Result<(), RenderError> {
+        self.sdl_instance.buff_texture.update(
+            None,
+            self.render_context.pixel_grid.get_pixel_data(),
+            (self.buff_width * 3) as usize,
+        )?;
+
+        self.sdl_instance
+            .canvas
+            .copy(&self.sdl_instance.buff_texture, None, None)
+            .map_err(RenderError::SdlCanvasCopy)?;
+        self.sdl_instance.canvas.present();
+
+        self.render_context.pixel_grid.clear();
+
+        Ok(())
+    }
+
     pub fn register_object(&mut self, object: Object) -> &mut Object {
         self.scene_context.objects.push(object);
         self.scene_context.objects.last_mut().unwrap()
     }
 
     pub fn get_camera(&mut self) -> &mut Camera {
-        &mut self.scene_context.camera
+        &mut self.render_context.camera
+    }
+
+    pub fn get_pixel_grid(&mut self) -> &mut PixelGrid {
+        &mut self.render_context.pixel_grid
     }
 
     pub fn center_mouse(&mut self) {

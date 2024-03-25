@@ -1,5 +1,5 @@
 use rndr_core::events::Event;
-use rndr_core::pixel::PixelGrid;
+use rndr_core::prelude::{Instance, PixelGrid};
 
 const HEIGHT: u32 = 500;
 const WIDTH: u32 = 1000;
@@ -8,15 +8,15 @@ const BUFF_HEIGHT: u32 = 50;
 const BUFF_WIDTH: u32 = 100;
 
 fn main() {
-    let mut instance = rndr_core::Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT)
-        .expect("Could not init rndr");
+    let mut instance =
+        Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
     loop {
         for event in instance.event_pump.poll_iter() {
             if let Event::Quit { timestamp: _ } = event {
                 panic!("Exit requested");
             }
         }
-        update(&mut instance.pixel_grid);
+        update(&mut instance.get_pixel_grid());
         instance.render();
         instance.apply_render().expect("Could not render");
     }
