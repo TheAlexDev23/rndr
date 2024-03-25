@@ -64,54 +64,61 @@ impl PixelGrid {
         }
     }
 
-    pub fn triangle(
+    pub fn triangle<F>(
         &mut self,
         first: (f32, f32),
         second: (f32, f32),
         third: (f32, f32),
-        buff_width: u32,
-        buff_height: u32,
-    ) {
-        let total_triangle_area = Self::triangle_area(first, second, third);
+        color: F,
+    ) where
+        F: Fn(f32, f32, f32) -> [u8; 3],
+    {
+        let total_area = Self::triangle_area(first, second, third);
 
-        let buff_width = (buff_width / 2) as f32;
-        let buff_height = (buff_height / 2) as f32;
+        let width = (self.width / 2) as f32;
+        let height = (self.height / 2) as f32;
 
-        let x_start = first
-            .0
-            .min(second.0)
-            .min(third.0)
-            .max(-1.0 * buff_width)
-            .round() as i32;
+        let x_start = first.0.min(second.0).min(third.0).max(-1.0 * width).round() as i32;
 
-        let x_end = first.0.max(second.0).max(third.0).min(buff_width).round() as i32;
+        let x_end = first.0.max(second.0).max(third.0).min(width).round() as i32;
 
         let y_start = first
             .1
             .min(second.1)
             .min(third.1)
-            .max(-1.0 * buff_height)
+            .max(-1.0 * height)
             .round() as i32;
 
-        let y_end = first.1.max(second.1).max(third.1).min(buff_height).round() as i32;
+        let y_end = first.1.max(second.1).max(third.1).min(height).round() as i32;
 
         for x in x_start..x_end {
             for y in y_start..y_end {
                 let pt = (x as f32, y as f32);
 
-                let comparing = Self::triangle_area(pt, first, second)
-                    + Self::triangle_area(pt, first, third)
-                    + Self::triangle_area(pt, third, second);
+                // TODO: try to get the barycentric coordiantes first, and check if they sum up to 1.0
+                // instead of summing areas and dividing areas
+
+                let first_second = Self::triangle_area(pt, first, second);
+                let first_third = Self::triangle_area(pt, first, third);
+                let third_second = Self::triangle_area(pt, third, second);
 
                 const EPILIPSON: f32 = 0.01;
 
-                if (comparing - total_triangle_area).abs() <= EPILIPSON {
-                    let screen_x = x + buff_width as i32;
-                    let screen_y = buff_height as i32 + y;
+                if (first_second + first_third + third_second - total_area).abs() <= EPILIPSON {
+                    let screen_x = x + width as i32;
+                    let screen_y = height as i32 + y;
+
                     let px = self.get_pixel(screen_x as u32, screen_y as u32);
-                    px[0] = 255;
-                    px[1] = 255;
-                    px[2] = 255;
+
+                    let first = third_second / total_area;
+                    let second = first_third / total_area;
+                    let third = first_second / total_area;
+
+                    let color = color(first, second, third);
+
+                    px[0] = color[0];
+                    px[1] = color[1];
+                    px[2] = color[2];
                 }
             }
         }
