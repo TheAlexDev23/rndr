@@ -35,7 +35,7 @@ impl V3 {
 
     /// Handle the V3 as a 3D point and rotate by `angle`, where angle is not a 3d point
     /// but an (x, y, z) euler rotation
-    pub fn rotate(&mut self, angle: V3) {
+    pub fn rotate(&self, angle: V3) -> V3 {
         let a = angle.z;
         let b = angle.y;
         let y = angle.x;
@@ -62,7 +62,7 @@ impl V3 {
             ),
         ]);
 
-        *self = rotation_matrix * *self;
+        rotation_matrix * *self
     }
 }
 

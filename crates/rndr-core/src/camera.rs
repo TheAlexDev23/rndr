@@ -74,14 +74,17 @@ impl Camera {
 
         let mut point = shape.vertices[index];
 
-        point.rotate(shape.transform.rotation);
+        // Rotating by shape.transform.rotation - self.transform.rotation apparently isn't the same
+        point = point.rotate(shape.transform.rotation);
+        point = point.rotate(-1.0 * self.transform.rotation);
 
-        point += shape
+        let transformed_pos = shape
             .transform
             .position
-            .relative_to(&self.transform.position);
+            .relative_to(&self.transform.position)
+            .rotate(-1.0 * self.transform.rotation);
 
-        point.rotate(-1.0 * self.transform.rotation);
+        point += transformed_pos;
 
         let mut px = PROJECTION_MATRIX * point;
 
