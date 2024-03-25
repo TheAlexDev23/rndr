@@ -41,9 +41,6 @@ pub struct Instance {
     pub(crate) width: u32,
     pub(crate) height: u32,
 
-    pub(crate) buff_width: u32,
-    pub(crate) buff_height: u32,
-
     pub(crate) render_context: RenderContext,
     pub(crate) scene_context: SceneContext,
 
@@ -91,8 +88,6 @@ impl Instance {
             event_pump,
             width,
             height,
-            buff_width,
-            buff_height,
             render_context: RenderContext::new(buff_width, buff_height),
             scene_context: SceneContext {
                 objects: Vec::new(),
@@ -115,7 +110,7 @@ impl Instance {
         self.sdl_instance.buff_texture.update(
             None,
             self.render_context.pixel_grid.get_pixel_data(),
-            (self.buff_width * 3) as usize,
+            (self.render_context.buff_width * 3) as usize,
         )?;
 
         self.sdl_instance
