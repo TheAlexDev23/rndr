@@ -1,8 +1,9 @@
 use rndr_math::vector::V3;
 
+use crate::prelude::object::Vertex;
+
 pub struct FragData {
-    pub position: V3,
-    pub color: [u8; 3],
+    pub vertex: Vertex,
 }
 
 pub trait FragShader {

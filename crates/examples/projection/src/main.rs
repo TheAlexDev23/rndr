@@ -1,33 +1,35 @@
 use rndr_core::events::{Event, Keycode};
 use rndr_core::prelude::{Instance, Object};
 
+use rndr_core::scene::object::Vertex;
 use rndr_math::prelude::*;
 
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref SQUARE: Vec<V3> = vec![
-        V3 {
-            x: 2.5,
-            y: 0.0,
-            z: 0.0,
-        },
-        V3 {
-            x: 2.5,
-            y: 0.0,
-            z: 5.0,
-        },
-        V3 {
-            x: -2.5,
-            y: 0.0,
-            z: 5.0,
-        },
-        V3 {
-            x: -2.5,
-            y: 0.0,
-            z: 0.0,
-        }
+    static ref SQUARE: Vec<Vertex> = vec![
+        Vertex::new_with_color(V3::new(
+             2.5,
+             0.0,
+             0.0,
+        ), [255, 255, 255]),
+        Vertex::new_with_color(V3::new(
+            2.5,
+            0.0,
+            5.0,
+        ), [255, 0, 255]),
+        Vertex::new_with_color(V3::new(
+             -2.5,
+             0.0,
+             5.0,
+        ), [255, 255, 0]),
+        Vertex::new_with_color(V3::new(
+            -2.5,
+            0.0,
+            0.0,
+        ), [255, 0, 0]),
     ];
+
     static ref SHAPES: Vec<Object> = vec![
         /*
         Object {
@@ -108,7 +110,7 @@ fn handle_fps(timer: &mut std::time::Instant, frames: &mut i32) {
 }
 
 fn handle_input_event(event: Event, instance: &mut Instance) {
-    const INCREASE_ROTATION: f32 = 0.1;
+    const INCREASE_ROTATION: f32 = 0.01;
     const INCREASE_POSITION: f32 = 0.2;
     let cam_transform = &mut instance.get_camera().transform;
 

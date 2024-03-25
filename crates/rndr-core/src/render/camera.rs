@@ -72,7 +72,7 @@ impl Camera {
             return cache[&index];
         }
 
-        let mut point = shape.vertices[index];
+        let mut point = shape.vertices[index].position;
 
         // Rotating by shape.transform.rotation - self.transform.rotation apparently isn't the same
         point = point.rotate(shape.transform.rotation);

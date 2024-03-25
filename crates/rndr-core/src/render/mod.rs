@@ -9,6 +9,7 @@ pub use shader::FragShader;
 
 use std::collections::HashMap;
 
+use crate::prelude::object::Vertex;
 use crate::prelude::SceneContext;
 
 pub(crate) struct RenderContext {
@@ -77,16 +78,14 @@ impl RenderContext {
                     let third = object.vertices[third_i];
 
                     let mut data = FragData {
-                        // TODO: use interpolated vertex color
-                        color: [(255.0 * f) as u8, (255.0 * s) as u8, (255.0 * t) as u8],
-                        position: first * f + second * s + third * t,
+                        vertex: Vertex::interpolate((first, f), (second, s), (third, t)),
                     };
 
                     for shader in self.shaders.iter() {
                         shader.frag(&mut data);
                     }
 
-                    data.color
+                    data.vertex.color
                 });
 
                 i += 3;
