@@ -1,35 +1,67 @@
 pub struct PixelGrid {
     width: u32,
     height: u32,
-    pixels: Vec<u8>,
+    pixel_colors: Vec<u8>,
+    pixel_zs: Vec<f32>,
 }
+
+// Arbitrary large number, so that pretty much any ordinary pixel would beat it and not get z occluded
+const DEFAULT_Z: f32 = 100_000_000.0;
 
 impl PixelGrid {
     pub fn new(width: u32, height: u32) -> PixelGrid {
         PixelGrid {
             width,
             height,
-            pixels: vec![0; (width * height * 3) as usize],
+            pixel_colors: vec![0; (width * height * 3) as usize],
+            pixel_zs: vec![DEFAULT_Z; (width * height) as usize],
         }
     }
 
-    pub fn get_pixel(&mut self, x: u32, y: u32) -> &mut [u8] {
-        let base = (3 * (self.width * y + x)) as usize;
-        &mut self.pixels[base..=base + 2]
+    pub fn get_pixel(&mut self, x: u32, y: u32) -> (&mut f32, &mut [u8]) {
+        let base = 3 * (self.width * y + x) as usize;
+        (
+            &mut self.pixel_zs[(self.width * y + x) as usize],
+            &mut self.pixel_colors[base..=base + 2],
+        )
+    }
+
+    pub fn set_pixel(&mut self, x: u32, y: u32, pixel: (f32, [u8; 3])) {
+        let current_pixel = self.get_pixel(x, y);
+        if pixel.0 > *current_pixel.0 {
+            return;
+        }
+
+        *current_pixel.0 = pixel.0;
+
+        current_pixel.1[0] = pixel.1[0];
+        current_pixel.1[1] = pixel.1[1];
+        current_pixel.1[2] = pixel.1[2];
+    }
+
+    fn set_pixel_with_bound_check(&mut self, x: i32, y: i32, pixel: (f32, [u8; 3])) {
+        if x >= self.width as i32 || x < 0 || y >= self.height as i32 || y < 0 {
+            return;
+        }
+        self.set_pixel(x as u32, y as u32, pixel);
     }
 
     pub fn clear(&mut self) {
-        self.pixels.iter_mut().for_each(|x| *x = 0);
+        self.pixel_colors
+            .iter_mut()
+            .for_each(|x| *x = unsafe { std::mem::zeroed() });
+        self.pixel_zs.iter_mut().for_each(|x| *x = DEFAULT_Z);
     }
 
     pub fn get_pixel_data(&self) -> &[u8] {
-        &self.pixels
+        &self.pixel_colors
     }
 
     pub fn line(&mut self, mut start: (i32, i32), mut end: (i32, i32), color: [u8; 3]) {
+        let pixel = (1.0, color);
         if end.0 == start.0 {
             for y in start.1.min(end.1)..end.1.max(start.1) {
-                self.set_pixel_checking_bounds(start.0 as i32, y as i32, color);
+                self.set_pixel_with_bound_check(start.0 as i32, y as i32, pixel);
             }
             return;
         }
@@ -47,15 +79,15 @@ impl PixelGrid {
         while current_x <= end.0 {
             if current_y > previous_y && current_y - previous_y >= 1.0 {
                 for y in previous_y as i32 + 1..current_y.round() as i32 {
-                    self.set_pixel_checking_bounds(current_x, y, color);
+                    self.set_pixel_with_bound_check(current_x, y, pixel);
                 }
             } else if previous_y > current_y && previous_y - current_y >= 1.0 {
                 for y in current_y as i32 + 1..previous_y.round() as i32 {
-                    self.set_pixel_checking_bounds(current_x, y, color);
+                    self.set_pixel_with_bound_check(current_x, y, pixel);
                 }
             }
 
-            self.set_pixel_checking_bounds(current_x, current_y.round() as i32, color);
+            self.set_pixel_with_bound_check(current_x, current_y.round() as i32, pixel);
 
             previous_y = current_y;
             current_y += rate;
@@ -69,9 +101,9 @@ impl PixelGrid {
         first: (f32, f32),
         second: (f32, f32),
         third: (f32, f32),
-        color: F,
+        pixel: F,
     ) where
-        F: Fn(f32, f32, f32) -> [u8; 3],
+        F: Fn(f32, f32, f32) -> (f32, [u8; 3]),
     {
         let total_area = Self::triangle_area(first, second, third);
 
@@ -108,30 +140,18 @@ impl PixelGrid {
                     let screen_x = x + width as i32;
                     let screen_y = height as i32 + y;
 
-                    let px = self.get_pixel(screen_x as u32, screen_y as u32);
-
                     let first = third_second / total_area;
                     let second = first_third / total_area;
                     let third = first_second / total_area;
 
-                    let color = color(first, second, third);
-
-                    px[0] = color[0];
-                    px[1] = color[1];
-                    px[2] = color[2];
+                    self.set_pixel(
+                        screen_x as u32,
+                        screen_y as u32,
+                        pixel(first, second, third),
+                    );
                 }
             }
         }
-    }
-
-    fn set_pixel_checking_bounds(&mut self, x: i32, y: i32, color: [u8; 3]) {
-        if x >= self.width as i32 || x < 0 || y >= self.height as i32 || y < 0 {
-            return;
-        }
-        let px = self.get_pixel(x as u32, y as u32);
-        px[0] = color[0];
-        px[1] = color[1];
-        px[2] = color[2];
     }
 
     fn triangle_area(p1: (f32, f32), p2: (f32, f32), p3: (f32, f32)) -> f32 {

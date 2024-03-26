@@ -1,10 +1,20 @@
 use rndr_core::events::{Event, Keycode};
 use rndr_core::prelude::{Instance, Object};
 
+use rndr_core::render::FragShader;
 use rndr_core::scene::object::Vertex;
 use rndr_math::prelude::*;
 
 use lazy_static::lazy_static;
+
+pub struct ZShader;
+
+impl FragShader for ZShader {
+    fn frag(&self, data: &mut rndr_core::prelude::FragData) {
+        let color = (255.0 * data.output_pixel().0) as u8;
+        data.output_pixel_mut().1 = [color, color, color]
+    }
+}
 
 lazy_static! {
     static ref SQUARE: Vec<Vertex> = vec![
@@ -62,6 +72,8 @@ fn main() {
     for object in SHAPES.iter() {
         instance.register_object(object.clone());
     }
+
+    instance.register_frag_shader(Box::from(ZShader));
 
     let mut timer = std::time::Instant::now();
     let mut frames = 0;

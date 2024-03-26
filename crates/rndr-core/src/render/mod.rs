@@ -10,7 +10,6 @@ pub use shader::FragShader;
 
 use std::collections::HashMap;
 
-use crate::prelude::object::Vertex;
 use crate::prelude::SceneContext;
 
 pub(crate) struct RenderContext {
@@ -74,37 +73,43 @@ impl RenderContext {
                 let third = (third_projected.x, third_projected.y);
 
                 self.pixel_grid.triangle(first, second, third, |f, s, t| {
-                    let first = object.vertices[first_i];
-                    let second = object.vertices[second_i];
-                    let third = object.vertices[third_i];
+                    // V means vertex
+                    let first_v = object.vertices[first_i];
+                    let second_v = object.vertices[second_i];
+                    let third_v = object.vertices[third_i];
+
+                    // VC means virtual color, it's the projected pixel's z value and color
+                    let first_vc = (first_projected.z, first_v.color);
+                    let second_vc = (second_projected.z, second_v.color);
+                    let third_vc = (third_projected.z, third_v.color);
 
                     let interpolated_color =
-                        Vertex::interpolate_color((first, f), (second, s), (third, t));
+                        interpolate_virtual_color((f, first_vc), (s, second_vc), (t, (third_vc)));
 
                     if !self.shaders.is_empty() {
                         let relative_position = V3::interpolate3(
-                            (first.position, f),
-                            (second.position, s),
-                            (third.position, t),
+                            (first_v.position, f),
+                            (second_v.position, s),
+                            (third_v.position, t),
                         );
 
                         let space_position = V3::interpolate3(
-                            (first.position + object.transform.position, f),
-                            (second.position + object.transform.position, s),
-                            (third.position + object.transform.position, t),
+                            (first_v.position + object.transform.position, f),
+                            (second_v.position + object.transform.position, s),
+                            (third_v.position + object.transform.position, t),
                         );
 
                         let mut data = FragData {
                             relative_position,
                             space_position,
-                            vertex_color: interpolated_color,
+                            output_pixel: interpolated_color,
                         };
 
                         for shader in self.shaders.iter() {
                             shader.frag(&mut data);
                         }
 
-                        data.vertex_color
+                        data.output_pixel
                     } else {
                         interpolated_color
                     }
@@ -114,4 +119,30 @@ impl RenderContext {
             }
         }
     }
+}
+
+fn interpolate_virtual_color(
+    v1: (f32, (f32, [u8; 3])),
+    v2: (f32, (f32, [u8; 3])),
+    v3: (f32, (f32, [u8; 3])),
+) -> (f32, [u8; 3]) {
+    let (v1_influence, v2_influence, v3_influence) = (v1.0, v2.0, v3.0);
+
+    let (v1_color, v2_color, v3_color) = (v1.1 .1, v2.1 .1, v3.1 .1);
+    let (v1_z, v2_z, v3_z) = (v1.1 .0, v2.1 .0, v3.1 .0);
+
+    (
+        v1_z * v1_influence + v2_z * v2_influence * v3_z * v3_influence,
+        [
+            (v1_color[0] as f32 * v1_influence
+                + v2_color[0] as f32 * v2_influence
+                + v3_color[0] as f32 * v3_influence) as u8,
+            (v1_color[1] as f32 * v1_influence
+                + v2_color[1] as f32 * v2_influence
+                + v3_color[1] as f32 * v3_influence) as u8,
+            (v1_color[2] as f32 * v1_influence
+                + v2_color[2] as f32 * v2_influence
+                + v3_color[2] as f32 * v3_influence) as u8,
+        ],
+    )
 }

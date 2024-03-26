@@ -3,13 +3,13 @@ use rndr_math::vector::V3;
 
 #[derive(Getters, MutGetters, Setters)]
 pub struct FragData {
-    #[getset(get)]
-    pub space_position: V3,
-    #[getset(get)]
-    pub relative_position: V3,
+    #[getset(get = "pub")]
+    pub(crate) space_position: V3,
+    #[getset(get = "pub")]
+    pub(crate) relative_position: V3,
 
-    #[getset(get, set, get_mut)]
-    pub vertex_color: [u8; 3],
+    #[getset(get = "pub", set = "pub", get_mut = "pub")]
+    pub(crate) output_pixel: (f32, [u8; 3]),
 }
 
 pub trait FragShader {

@@ -40,9 +40,9 @@ fn update(pixel_grid: &mut PixelGrid) {
     }
 
     let px = unsafe { pixel_grid.get_pixel(COUNTER_X, COUNTER_Y) };
-    px[0] += 15;
-    px[1] += 15;
-    px[2] += 15;
+    px.1[0] += 15;
+    px.1[1] += 15;
+    px.1[2] += 15;
 
     unsafe {
         COUNTER_X += 1;

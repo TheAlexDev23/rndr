@@ -8,8 +8,8 @@ use sdl2::{
 
 use thiserror::Error;
 
-use crate::prelude::{Camera, FragShader, Object, RenderContext, SceneContext};
-use crate::{events::EventPump, prelude::PixelGrid};
+use crate::events::EventPump;
+use crate::prelude::{Camera, FragShader, Object, PixelGrid, RenderContext, SceneContext};
 
 #[derive(Error, Debug)]
 pub enum InitError {
