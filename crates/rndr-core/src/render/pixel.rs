@@ -19,7 +19,7 @@ impl PixelGrid {
     }
 
     pub fn clear(&mut self) {
-        self.pixels = self.pixels.iter().map(|_| 0).collect()
+        self.pixels.iter_mut().for_each(|x| *x = 0);
     }
 
     pub fn get_pixel_data(&self) -> &[u8] {
