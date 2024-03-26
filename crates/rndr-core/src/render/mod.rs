@@ -16,7 +16,6 @@ pub(crate) struct RenderContext {
     pub pixel_grid: PixelGrid,
     pub camera: Camera,
     pub buff_width: u32,
-    pub buff_height: u32,
 
     shaders: Vec<Box<dyn FragShader>>,
 }
@@ -28,7 +27,6 @@ impl RenderContext {
             pixel_grid: PixelGrid::new(buff_width, buff_height),
             shaders: Vec::new(),
             buff_width,
-            buff_height,
         }
     }
 

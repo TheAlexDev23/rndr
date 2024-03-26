@@ -3,7 +3,7 @@ use sdl2::{
     render::UpdateTextureError,
     render::{Texture, TextureValueError, WindowCanvas},
     video::WindowBuildError,
-    IntegerOrSdlError, Sdl, VideoSubsystem,
+    IntegerOrSdlError,
 };
 
 use thiserror::Error;
@@ -48,8 +48,6 @@ pub struct Instance {
 }
 
 pub(crate) struct SdlInstance {
-    pub sdl_ctx: Sdl,
-    pub video: VideoSubsystem,
     pub canvas: WindowCanvas,
     pub buff_texture: Texture,
     pub mouse: MouseUtil,
@@ -93,8 +91,6 @@ impl Instance {
                 objects: Vec::new(),
             },
             sdl_instance: SdlInstance {
-                sdl_ctx,
-                video,
                 buff_texture,
                 canvas,
                 mouse,
