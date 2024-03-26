@@ -130,7 +130,7 @@ fn interpolate_virtual_color(
     let (v1_z, v2_z, v3_z) = (v1.1 .0, v2.1 .0, v3.1 .0);
 
     (
-        v1_z * v1_influence + v2_z * v2_influence * v3_z * v3_influence,
+        v1_z * v1_influence + v2_z * v2_influence + v3_z * v3_influence,
         [
             (v1_color[0] as f32 * v1_influence
                 + v2_color[0] as f32 * v2_influence

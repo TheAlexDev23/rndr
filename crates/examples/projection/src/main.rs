@@ -16,6 +16,22 @@ lazy_static! {
     static ref SHAPES: Vec<Object> = vec![
         Object {
             transform: Transform {
+                position: V3::new(0.0, 2.5, 5.0),
+                rotation: V3::new(90.0, 0.0, 0.0)
+            },
+            vertices: SQUARE.clone(),
+            triangles: vec![0, 1, 2, 0, 3, 2]
+        },
+        Object {
+            transform: Transform {
+                position: V3::new(0.0, 2.5, 0.0),
+                rotation: V3::new(90.0, 0.0, 0.0)
+            },
+            vertices: SQUARE.clone(),
+            triangles: vec![0, 1, 2, 0, 3, 2]
+        },
+        Object {
+            transform: Transform {
                 position: V3::new(0.0, 2.5, 0.0),
                 rotation: V3::new(0.0, 0.0, 0.0)
             },
@@ -89,9 +105,9 @@ fn handle_fps(timer: &mut std::time::Instant, frames: &mut i32) {
 }
 
 fn handle_input_event(event: Event, instance: &mut Instance) {
-    const INCREASE_ROTATION: f32 = 0.01;
+    const INCREASE_ROTATION: f32 = 0.05;
     const INCREASE_POSITION: f32 = 0.2;
-    let cam_transform = &mut instance.get_camera().transform;
+    let cam = &mut instance.get_camera();
 
     match event {
         Event::Quit { timestamp: _ } => {
@@ -107,8 +123,8 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
             xrel,
             yrel,
         } => {
-            cam_transform.rotation.z += INCREASE_ROTATION * xrel as f32;
-            cam_transform.rotation.y += INCREASE_ROTATION * yrel as f32;
+            cam.transform.rotation.z += INCREASE_ROTATION * xrel as f32;
+            cam.transform.rotation.y += INCREASE_ROTATION * yrel as f32;
         }
         Event::KeyDown {
             keycode: Some(keycode),
@@ -116,34 +132,34 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
         } => {
             match keycode {
                 Keycode::E => {
-                    cam_transform.position += cam_transform.up() * INCREASE_POSITION;
+                    cam.transform.position += cam.transform.up() * INCREASE_POSITION;
                 }
                 Keycode::Q => {
-                    cam_transform.position -= cam_transform.up() * INCREASE_POSITION;
+                    cam.transform.position -= cam.transform.up() * INCREASE_POSITION;
                 }
                 Keycode::W => {
-                    cam_transform.position += cam_transform.fwd() * INCREASE_POSITION;
+                    cam.transform.position += cam.transform.fwd() * INCREASE_POSITION;
                 }
                 Keycode::S => {
-                    cam_transform.position -= cam_transform.fwd() * INCREASE_POSITION;
+                    cam.transform.position -= cam.transform.fwd() * INCREASE_POSITION;
                 }
                 Keycode::A => {
-                    cam_transform.position += cam_transform.right() * INCREASE_POSITION;
+                    cam.transform.position += cam.transform.right() * INCREASE_POSITION;
                 }
                 Keycode::D => {
-                    cam_transform.position -= cam_transform.right() * INCREASE_POSITION;
+                    cam.transform.position -= cam.transform.right() * INCREASE_POSITION;
                 }
                 Keycode::Left => {
-                    cam_transform.rotation.z += INCREASE_ROTATION;
+                    cam.transform.rotation.z += INCREASE_ROTATION;
                 }
                 Keycode::Right => {
-                    cam_transform.rotation.z -= INCREASE_ROTATION;
+                    cam.transform.rotation.z -= INCREASE_ROTATION;
                 }
                 Keycode::Up => {
-                    cam_transform.rotation.y += INCREASE_ROTATION;
+                    cam.display_surface_offset.as_mut().unwrap().z += 0.5;
                 }
                 Keycode::Down => {
-                    cam_transform.rotation.y -= INCREASE_ROTATION;
+                    cam.display_surface_offset.as_mut().unwrap().z -= 0.5;
                 }
                 _ => (),
             };

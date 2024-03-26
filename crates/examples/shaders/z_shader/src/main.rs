@@ -26,6 +26,22 @@ lazy_static! {
     static ref SHAPES: Vec<Object> = vec![
         Object {
             transform: Transform {
+                position: V3::new(0.0, 2.5, 5.0),
+                rotation: V3::new(90.0, 0.0, 0.0)
+            },
+            vertices: SQUARE.clone(),
+            triangles: vec![0, 1, 2, 0, 3, 2]
+        },
+        Object {
+            transform: Transform {
+                position: V3::new(0.0, 2.5, 0.0),
+                rotation: V3::new(90.0, 0.0, 0.0)
+            },
+            vertices: SQUARE.clone(),
+            triangles: vec![0, 1, 2, 0, 3, 2]
+        },
+        Object {
+            transform: Transform {
                 position: V3::new(0.0, 2.5, 0.0),
                 rotation: V3::new(0.0, 0.0, 0.0)
             },
@@ -101,7 +117,7 @@ fn handle_fps(timer: &mut std::time::Instant, frames: &mut i32) {
 }
 
 fn handle_input_event(event: Event, instance: &mut Instance) {
-    const INCREASE_ROTATION: f32 = 0.01;
+    const INCREASE_ROTATION: f32 = 0.08;
     const INCREASE_POSITION: f32 = 0.2;
     let cam_transform = &mut instance.get_camera().transform;
 

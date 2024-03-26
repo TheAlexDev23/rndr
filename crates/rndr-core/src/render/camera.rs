@@ -49,7 +49,7 @@ impl Camera {
         Camera {
             perspective,
             display_surface_offset: if perspective {
-                Some(V3::new(0.0, 0.0, -10.0))
+                Some(V3::new(0.0, 0.0, -100.0))
             } else {
                 None
             },
