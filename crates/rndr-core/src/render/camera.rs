@@ -24,26 +24,6 @@ pub struct Camera {
     pub zero_threshold: f32,
 }
 
-const PROJECTION_MATRIX: M3x3 = M3x3 {
-    columns: [
-        V3 {
-            x: 0.0,
-            y: 0.0,
-            z: 1.0,
-        },
-        V3 {
-            x: -1.0,
-            y: 0.0,
-            z: 0.0,
-        },
-        V3 {
-            x: 0.0,
-            y: 1.0,
-            z: 0.0,
-        },
-    ],
-};
-
 impl Camera {
     pub fn new(perspective: bool) -> Camera {
         Camera {
@@ -62,9 +42,20 @@ impl Camera {
         }
     }
 
+    pub fn get_projection_matrix(&mut self) -> M3x3 {
+        let (fwd, right, up) = self.transform.get_orientations_in_bulk();
+
+        M3x3::new([
+            V3::new(right.x, up.x, fwd.x),
+            V3::new(right.y, up.y, fwd.y),
+            V3::new(right.z, up.z, fwd.z),
+        ])
+    }
+
     pub fn project_point(
         &mut self,
         cache: &mut HashMap<usize, V3>,
+        projection_matrix: M3x3,
         shape: &Object,
         index: usize,
     ) -> V3 {
@@ -74,19 +65,16 @@ impl Camera {
 
         let mut point = shape.vertices[index].position;
 
-        // Rotating by shape.transform.rotation - self.transform.rotation apparently isn't the same
         point = point.rotate(shape.transform.rotation);
-        point = point.rotate(-1.0 * self.transform.rotation);
 
         let transformed_pos = shape
             .transform
             .position
-            .relative_to(&self.transform.position)
-            .rotate(-1.0 * self.transform.rotation);
+            .relative_to(&self.transform.position);
 
         point += transformed_pos;
 
-        let mut px = PROJECTION_MATRIX * point;
+        let mut px = projection_matrix * point;
 
         if self.perspective && px.z.abs() > self.zero_threshold {
             let display_surface_offset = self.display_surface_offset.unwrap();

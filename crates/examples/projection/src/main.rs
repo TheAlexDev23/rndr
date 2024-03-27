@@ -75,9 +75,15 @@ fn main() {
     let mut instance =
         Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
 
+    /*
     for object in SHAPES.iter() {
         instance.register_object(object.clone());
     }
+    */
+
+    instance.register_object(
+        Object::from_stl("Utah_teapot_(solid).stl").expect("Could not parse 3d model"),
+    );
 
     let mut timer = std::time::Instant::now();
     let mut frames = 0;
@@ -156,10 +162,10 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
                     cam.transform.rotation.z -= INCREASE_ROTATION;
                 }
                 Keycode::Up => {
-                    cam.display_surface_offset.as_mut().unwrap().z += 0.5;
+                    cam.display_surface_offset.as_mut().unwrap().z += 2.5;
                 }
                 Keycode::Down => {
-                    cam.display_surface_offset.as_mut().unwrap().z -= 0.5;
+                    cam.display_surface_offset.as_mut().unwrap().z -= 2.5;
                 }
                 _ => (),
             };

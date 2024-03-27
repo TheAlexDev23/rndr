@@ -1,6 +1,7 @@
 use std::{
     fmt::Display,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+    vec,
 };
 
 use crate::prelude::M3x3;
@@ -36,6 +37,17 @@ impl V3 {
     /// Handle the V3 as a 3D point and rotate by `angle`, where angle is not a 3d point
     /// but an (x, y, z) euler rotation
     pub fn rotate(&self, angle: V3) -> V3 {
+        Self::rotation_matrix(angle) * *self
+    }
+
+    pub fn rotate_in_bulk(vectors: Vec<&mut V3>, angle: V3) {
+        let rotation_matrix = Self::rotation_matrix(angle);
+        for vector in vectors.into_iter() {
+            *vector = *vector * rotation_matrix;
+        }
+    }
+
+    fn rotation_matrix(angle: V3) -> M3x3 {
         let a = angle.z;
         let b = angle.y;
         let y = angle.x;
@@ -48,7 +60,7 @@ impl V3 {
         let cos_b = b.to_radians().cos();
         let cos_y = y.to_radians().cos();
 
-        let rotation_matrix = M3x3::new([
+        M3x3::new([
             V3::new(cos_a * cos_b, sin_a * cos_b, -1.0 * sin_b),
             V3::new(
                 cos_a * sin_b * sin_y - sin_a * cos_y,
@@ -60,9 +72,7 @@ impl V3 {
                 sin_a * sin_b * cos_y - cos_a * sin_y,
                 cos_b * cos_y,
             ),
-        ]);
-
-        rotation_matrix * *self
+        ])
     }
 
     pub fn interpolate3(v1: (V3, f32), v2: (V3, f32), v3: (V3, f32)) -> V3 {
@@ -73,6 +83,12 @@ impl V3 {
 impl Display for V3 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{{ {}, {}, {} }}", self.x, self.y, self.z)
+    }
+}
+
+impl From<[f32; 3]> for V3 {
+    fn from(value: [f32; 3]) -> Self {
+        V3::new(value[0], value[1], value[2])
     }
 }
 
