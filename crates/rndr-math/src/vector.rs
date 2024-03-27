@@ -1,7 +1,6 @@
 use std::{
     fmt::Display,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
-    vec,
 };
 
 use crate::prelude::M3x3;

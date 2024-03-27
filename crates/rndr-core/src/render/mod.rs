@@ -37,34 +37,23 @@ impl RenderContext {
     pub fn render(&mut self, scene_context: &mut SceneContext) {
         let projection_matrix = self.camera.get_projection_matrix();
         for object in scene_context.objects.iter() {
-            let mut cached_screen_points = HashMap::new();
-
             let mut i = 0;
             while i < object.triangles.len() {
                 let first_i = object.triangles[i];
                 let second_i = object.triangles[i + 1];
                 let third_i = object.triangles[i + 2];
 
-                let first_projected = self.camera.project_point(
-                    &mut cached_screen_points,
-                    projection_matrix,
-                    &object,
-                    first_i,
-                );
+                let first_projected =
+                    self.camera
+                        .project_point(projection_matrix, &object, first_i);
 
-                let second_projected = self.camera.project_point(
-                    &mut cached_screen_points,
-                    projection_matrix,
-                    &object,
-                    second_i,
-                );
+                let second_projected =
+                    self.camera
+                        .project_point(projection_matrix, &object, second_i);
 
-                let third_projected = self.camera.project_point(
-                    &mut cached_screen_points,
-                    projection_matrix,
-                    &object,
-                    third_i,
-                );
+                let third_projected =
+                    self.camera
+                        .project_point(projection_matrix, &object, third_i);
 
                 let near_plane = self.camera.near_plane;
 

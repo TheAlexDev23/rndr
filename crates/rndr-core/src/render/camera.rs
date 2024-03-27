@@ -52,17 +52,7 @@ impl Camera {
         ])
     }
 
-    pub fn project_point(
-        &mut self,
-        cache: &mut HashMap<usize, V3>,
-        projection_matrix: M3x3,
-        shape: &Object,
-        index: usize,
-    ) -> V3 {
-        if cache.contains_key(&index) {
-            return cache[&index];
-        }
-
+    pub fn project_point(&mut self, projection_matrix: M3x3, shape: &Object, index: usize) -> V3 {
         let mut point = shape.vertices[index].position;
 
         point = point.rotate(shape.transform.rotation);
@@ -82,7 +72,6 @@ impl Camera {
             px.y = display_surface_offset.z / px.z * px.y + display_surface_offset.y;
         }
 
-        cache.insert(index, px);
         px
     }
 }
