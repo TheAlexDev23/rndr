@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use rndr_math::{matrix::M3x3, transform::Transform, vector::V3};
 
 use crate::prelude::Object;

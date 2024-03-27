@@ -8,8 +8,6 @@ use rndr_math::vector::V3;
 pub use shader::FragData;
 pub use shader::FragShader;
 
-use std::collections::HashMap;
-
 use crate::prelude::SceneContext;
 
 pub(crate) struct RenderContext {
