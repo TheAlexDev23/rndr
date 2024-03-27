@@ -1,17 +1,20 @@
 use rndr_math::prelude::Transform;
 use rndr_math::prelude::V3;
 
+use crate::prelude::shader;
+use crate::prelude::FragShader;
+
 #[derive(Default, Clone, Copy)]
 pub struct Vertex {
     pub position: V3,
     pub color: [u8; 3],
 }
 
-#[derive(Clone)]
 pub struct Object {
     pub transform: Transform,
     pub vertices: Vec<Vertex>,
-    pub triangles: Vec<usize>,
+    pub triangles: Vec<[usize; 3]>,
+    pub shader: Box<dyn FragShader>,
 }
 
 impl Vertex {
@@ -49,6 +52,7 @@ impl Object {
             transform: Transform::default(),
             vertices: Vec::with_capacity(stl.triangles.len() * 3),
             triangles: Vec::with_capacity(stl.triangles.len()),
+            shader: Box::new(shader::DefaultShader),
         };
         for triangle in stl.triangles {
             let len = object.vertices.len();
@@ -66,9 +70,7 @@ impl Object {
                 position: triangle.v3.into(),
             });
 
-            object.triangles.push(len);
-            object.triangles.push(len + 1);
-            object.triangles.push(len + 2);
+            object.triangles.push([len, len + 1, len + 2]);
         }
 
         Ok(object)

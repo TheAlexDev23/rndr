@@ -9,7 +9,7 @@ use sdl2::{
 use thiserror::Error;
 
 use crate::events::EventPump;
-use crate::prelude::{Camera, FragShader, Object, PixelGrid, RenderContext, SceneContext};
+use crate::prelude::{Camera, Object, PixelGrid, RenderContext, SceneContext};
 
 #[derive(Error, Debug)]
 pub enum InitError {
@@ -118,10 +118,6 @@ impl Instance {
         self.render_context.pixel_grid.clear();
 
         Ok(())
-    }
-
-    pub fn register_frag_shader(&mut self, shader: Box<dyn FragShader>) {
-        self.render_context.register_frag_shader(shader);
     }
 
     pub fn register_object(&mut self, object: Object) -> &mut Object {

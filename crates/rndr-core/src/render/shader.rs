@@ -12,6 +12,11 @@ pub struct FragData {
     pub(crate) output_pixel: (f32, [u8; 3]),
 }
 
-pub trait FragShader {
+pub trait FragShader: Sync + Send {
     fn frag(&self, data: &mut FragData);
+}
+
+pub struct DefaultShader;
+impl FragShader for DefaultShader {
+    fn frag(&self, _data: &mut FragData) {}
 }

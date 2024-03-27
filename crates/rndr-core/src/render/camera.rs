@@ -2,6 +2,7 @@ use rndr_math::{matrix::M3x3, transform::Transform, vector::V3};
 
 use crate::prelude::Object;
 
+#[derive(Clone)]
 pub struct Camera {
     pub transform: Transform,
 
@@ -50,7 +51,7 @@ impl Camera {
         ])
     }
 
-    pub fn project_point(&mut self, projection_matrix: M3x3, shape: &Object, index: usize) -> V3 {
+    pub fn project_point(&self, projection_matrix: M3x3, shape: &Object, index: usize) -> V3 {
         let mut point = shape.vertices[index].position;
 
         point = point.rotate(shape.transform.rotation);
@@ -64,7 +65,7 @@ impl Camera {
 
         let mut px = projection_matrix * point;
 
-        if self.perspective && px.z.abs() > self.zero_threshold {
+        if self.perspective && px.z > 0.0 && px.z > self.zero_threshold {
             let display_surface_offset = self.display_surface_offset.unwrap();
             px.x = display_surface_offset.z / px.z * px.x + display_surface_offset.x;
             px.y = display_surface_offset.z / px.z * px.y + display_surface_offset.y;

@@ -1,70 +1,6 @@
 use rndr_core::events::{Event, Keycode};
 use rndr_core::prelude::{Instance, Object};
 
-use rndr_core::scene::object::Vertex;
-use rndr_math::prelude::*;
-
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref SQUARE: Vec<Vertex> = vec![
-        Vertex::new_with_color(V3::new(2.5, 0.0, 0.0,), [255, 255, 255]),
-        Vertex::new_with_color(V3::new(2.5, 0.0, 5.0,), [255, 0, 0]),
-        Vertex::new_with_color(V3::new(-2.5, 0.0, 5.0,), [0, 255, 0]),
-        Vertex::new_with_color(V3::new(-2.5, 0.0, 0.0,), [0, 0, 255]),
-    ];
-    static ref SHAPES: Vec<Object> = vec![
-        Object {
-            transform: Transform {
-                position: V3::new(0.0, 2.5, 5.0),
-                rotation: V3::new(90.0, 0.0, 0.0)
-            },
-            vertices: SQUARE.clone(),
-            triangles: vec![0, 1, 2, 0, 3, 2]
-        },
-        Object {
-            transform: Transform {
-                position: V3::new(0.0, 2.5, 0.0),
-                rotation: V3::new(90.0, 0.0, 0.0)
-            },
-            vertices: SQUARE.clone(),
-            triangles: vec![0, 1, 2, 0, 3, 2]
-        },
-        Object {
-            transform: Transform {
-                position: V3::new(0.0, 2.5, 0.0),
-                rotation: V3::new(0.0, 0.0, 0.0)
-            },
-            vertices: SQUARE.clone(),
-            triangles: vec![0, 1, 2, 0, 3, 2]
-        },
-        Object {
-            transform: Transform {
-                position: V3::new(2.5, 0.0, 0.0),
-                rotation: V3::new(0.0, 0.0, 90.0),
-            },
-            vertices: SQUARE.clone(),
-            triangles: vec![0, 1, 2, 0, 3, 2]
-        },
-        Object {
-            transform: Transform {
-                position: V3::new(0.0, -2.5, 0.0),
-                rotation: V3::new(0.0, 0.0, 0.0),
-            },
-            vertices: SQUARE.clone(),
-            triangles: vec![0, 1, 2, 0, 3, 2]
-        },
-        Object {
-            transform: Transform {
-                position: V3::new(-2.5, 0.0, 0.0),
-                rotation: V3::new(0.0, 0.0, 90.0),
-            },
-            vertices: SQUARE.clone(),
-            triangles: vec![0, 1, 2, 0, 3, 2]
-        }
-    ];
-}
-
 const HEIGHT: u32 = 500;
 const WIDTH: u32 = 1000;
 
@@ -75,14 +11,8 @@ fn main() {
     let mut instance =
         Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
 
-    /*
-    for object in SHAPES.iter() {
-        instance.register_object(object.clone());
-    }
-    */
-
     instance.register_object(
-        Object::from_stl("Utah_teapot_(solid).stl").expect("Could not parse 3d model"),
+        Object::from_stl("../../../Utah_teapot_(solid).stl").expect("Could not load object"),
     );
 
     let mut timer = std::time::Instant::now();
