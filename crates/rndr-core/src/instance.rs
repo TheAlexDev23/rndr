@@ -74,6 +74,7 @@ impl Instance {
             .map_err(InitError::SdlCanvasInit)?;
 
         let mouse = sdl_ctx.mouse();
+        mouse.set_relative_mouse_mode(true);
 
         let event_pump = sdl_ctx.event_pump().map_err(InitError::SdlEventPumpInit)?;
         let buff_texture = canvas.create_texture_streaming(
@@ -131,13 +132,5 @@ impl Instance {
 
     pub fn get_pixel_grid(&mut self) -> &mut PixelGrid {
         &mut self.render_context.pixel_grid
-    }
-
-    pub fn center_mouse(&mut self) {
-        self.sdl_instance.mouse.warp_mouse_in_window(
-            self.sdl_instance.canvas.window_mut(),
-            (self.width) as i32 - 25,
-            (self.height) as i32 - 25,
-        );
     }
 }

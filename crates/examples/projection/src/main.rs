@@ -25,7 +25,6 @@ fn main() {
         for event in poll {
             handle_input_event(event, &mut instance);
         }
-        instance.center_mouse();
         instance.render();
         instance.apply_render().expect("Could not render");
         frames += 1;
@@ -41,7 +40,8 @@ fn handle_fps(timer: &mut std::time::Instant, frames: &mut i32) {
 }
 
 fn handle_input_event(event: Event, instance: &mut Instance) {
-    const INCREASE_ROTATION: f32 = 0.05;
+    const INCREASE_ROTATION: f32 = 0.001;
+    const INCREASE_ROTATION_KEY: f32 = 10.0;
     const INCREASE_POSITION: f32 = 0.2;
     let cam = &mut instance.get_camera();
 
@@ -86,15 +86,21 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
                     cam.transform.position -= cam.transform.right() * INCREASE_POSITION;
                 }
                 Keycode::Left => {
-                    cam.transform.rotation.z += INCREASE_ROTATION;
+                    cam.transform.rotation.z -= INCREASE_ROTATION_KEY;
                 }
                 Keycode::Right => {
-                    cam.transform.rotation.z -= INCREASE_ROTATION;
+                    cam.transform.rotation.z += INCREASE_ROTATION_KEY;
                 }
                 Keycode::Up => {
-                    cam.display_surface_offset.as_mut().unwrap().z += 2.5;
+                    cam.transform.rotation.y -= INCREASE_ROTATION_KEY;
                 }
                 Keycode::Down => {
+                    cam.transform.rotation.y += INCREASE_ROTATION_KEY;
+                }
+                Keycode::Plus => {
+                    cam.display_surface_offset.as_mut().unwrap().z += 2.5;
+                }
+                Keycode::Minus => {
                     cam.display_surface_offset.as_mut().unwrap().z -= 2.5;
                 }
                 _ => (),

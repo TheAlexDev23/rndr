@@ -11,6 +11,61 @@ impl M3x3 {
     pub fn new(columns: [V3; 3]) -> M3x3 {
         M3x3 { columns }
     }
+
+    pub fn inv(&self) -> Option<M3x3> {
+        let a = self.columns[0].x;
+        let b = self.columns[1].x;
+        let c = self.columns[2].x;
+
+        let d = self.columns[0].y;
+        let e = self.columns[1].y;
+        let f = self.columns[2].y;
+
+        let g = self.columns[0].z;
+        let h = self.columns[1].z;
+        let i = self.columns[2].z;
+
+        println!("a: {a},b: {b}, c: {c}, d: {d}, e: {e}, f: {f}, g: {g}, h: {h},i: {i}");
+
+        let determinant =
+            (a * e * i) + (b * f * g) + (c * d * h) - (c * e * g) - (b * d * i) - (a * f * h);
+        println!("{determinant}");
+        if determinant < f32::EPSILON && determinant > -f32::EPSILON {
+            return None;
+        }
+
+        let mut a_ = e * i - f * h;
+        let mut b_ = -1.0 * (d * i - f * g);
+        let mut c_ = d * h - e * g;
+
+        let mut d_ = -1.0 * (b * i - c * h);
+        let mut e_ = a * i - c * g;
+        let mut f_ = -1.0 * (a * h - b * g);
+
+        let mut g_ = b * f - c * e;
+        let mut h_ = -1.0 * (a * f - c * d);
+        let mut i_ = a * e - b * d;
+
+        println!("a: {a},b: {b}, c: {c}, d: {d}, e: {e}, f: {f}, g: {g}, h: {h},i: {i}");
+
+        let mult = 1.0 / determinant;
+
+        a_ *= mult;
+        b_ *= mult;
+        c_ *= mult;
+        d_ *= mult;
+        e_ *= mult;
+        f_ *= mult;
+        g_ *= mult;
+        h_ *= mult;
+        i_ *= mult;
+
+        Some(M3x3::new([
+            V3::new(a_, b_, c_),
+            V3::new(d_, e_, f_),
+            V3::new(g_, h_, i_),
+        ]))
+    }
 }
 
 impl Mul<V3> for M3x3 {
