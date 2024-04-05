@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 rndr-core = { path = "../../rndr-core/" }
 rndr-math = { path = "../../rndr-math/" }
+rndr-phys = { path = "../../rndr-phys/" }
 lazy_static = "*"

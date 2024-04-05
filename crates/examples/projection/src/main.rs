@@ -1,5 +1,8 @@
 use rndr_core::events::{Event, Keycode};
 use rndr_core::prelude::{Instance, Object};
+use rndr_core::scene::object::Vertex;
+
+use rndr_math::prelude::*;
 
 const HEIGHT: u32 = 500;
 const WIDTH: u32 = 1000;
@@ -11,6 +14,21 @@ fn main() {
     let mut instance =
         Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
 
+    let square = Object {
+        transform: Transform {
+            position: V3::default(),
+            rotation: V3::default(),
+        },
+        vertices: vec![
+            Vertex::new(V3::new(-1.0, 0.0, -1.0)),
+            Vertex::new(V3::new(-1.0, 0.0, 1.0)),
+            Vertex::new(V3::new(1.0, 0.0, 1.0)),
+            Vertex::new(V3::new(1.0, 0.0, -1.0)),
+        ],
+        triangles: vec![[0, 1, 2], [0, 2, 3]],
+        shader: Box::from(rndr_core::prelude::shader::DefaultShader),
+    };
+
     instance.register_object(
         Object::from_stl("../../../Utah_teapot_(solid).stl").expect("Could not load object"),
     );
@@ -18,6 +36,26 @@ fn main() {
     let mut timer = std::time::Instant::now();
     let mut frames = 0;
     loop {
+        if (std::time::Instant::now() - timer).as_secs_f32() >= 1.0 {
+            let cam = instance.get_camera();
+            let out = rndr_phys::raycast::raycast(
+                cam.transform.position,
+                cam.transform.fwd(),
+                &instance.scene_context,
+            );
+            if let Some(pos) = out {
+                let new_square = Object {
+                    transform: Transform {
+                        position: pos,
+                        rotation: V3::default(),
+                    },
+                    vertices: square.vertices.clone(),
+                    triangles: square.triangles.clone(),
+                    shader: Box::from(rndr_core::prelude::shader::DefaultShader),
+                };
+                instance.register_object(new_square);
+            }
+        }
         handle_fps(&mut timer, &mut frames);
 
         let poll: Vec<_> = instance.event_pump.poll_iter().collect();

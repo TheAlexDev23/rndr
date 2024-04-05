@@ -25,11 +25,8 @@ impl M3x3 {
         let h = self.columns[1].z;
         let i = self.columns[2].z;
 
-        println!("a: {a},b: {b}, c: {c}, d: {d}, e: {e}, f: {f}, g: {g}, h: {h},i: {i}");
-
         let determinant =
             (a * e * i) + (b * f * g) + (c * d * h) - (c * e * g) - (b * d * i) - (a * f * h);
-        println!("{determinant}");
         if determinant < f32::EPSILON && determinant > -f32::EPSILON {
             return None;
         }
@@ -45,8 +42,6 @@ impl M3x3 {
         let mut g_ = b * f - c * e;
         let mut h_ = -1.0 * (a * f - c * d);
         let mut i_ = a * e - b * d;
-
-        println!("a: {a},b: {b}, c: {c}, d: {d}, e: {e}, f: {f}, g: {g}, h: {h},i: {i}");
 
         let mult = 1.0 / determinant;
 

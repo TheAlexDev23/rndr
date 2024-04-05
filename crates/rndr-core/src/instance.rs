@@ -37,11 +37,12 @@ pub enum RenderError {
 pub struct Instance {
     pub event_pump: EventPump,
 
+    pub scene_context: SceneContext,
+
     pub(crate) width: u32,
     pub(crate) height: u32,
 
     pub(crate) render_context: RenderContext,
-    pub(crate) scene_context: SceneContext,
 
     pub(crate) sdl_instance: SdlInstance,
 }

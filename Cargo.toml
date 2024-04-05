@@ -3,6 +3,6 @@ members = [
   "crates/examples/projection",
   "crates/examples/screen_fill", "crates/examples/shaders/z_shader",
   "crates/rndr-core",
-  "crates/rndr-math",
+  "crates/rndr-math", "crates/rndr-phys",
 ]
 resolver = "2"
