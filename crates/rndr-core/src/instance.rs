@@ -1,5 +1,4 @@
 use sdl2::{
-    mouse::MouseUtil,
     render::UpdateTextureError,
     render::{Texture, TextureValueError, WindowCanvas},
     video::WindowBuildError,
@@ -50,7 +49,6 @@ pub struct Instance {
 pub(crate) struct SdlInstance {
     pub canvas: WindowCanvas,
     pub buff_texture: Texture,
-    pub mouse: MouseUtil,
 }
 
 impl Instance {
@@ -94,7 +92,6 @@ impl Instance {
             sdl_instance: SdlInstance {
                 buff_texture,
                 canvas,
-                mouse,
             },
         })
     }

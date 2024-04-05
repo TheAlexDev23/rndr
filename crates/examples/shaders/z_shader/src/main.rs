@@ -40,7 +40,6 @@ fn main() {
         for event in poll {
             handle_input_event(event, &mut instance);
         }
-        instance.center_mouse();
         instance.render();
         instance.apply_render().expect("Could not render");
         frames += 1;
