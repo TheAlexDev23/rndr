@@ -20,7 +20,7 @@ pub fn raycast(start: V3, dir: V3, scene_context: &SceneContext) -> Option<V3> {
             let v = res.x;
             let w = res.y;
 
-            if v < 0.0 || w < 0.0 || v + w > 1.0 {
+            if t < 0.0 || v < 0.0 || w < 0.0 || v + w > 1.0 {
                 continue;
             }
 
