@@ -71,22 +71,26 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
         } => {
             match keycode {
                 Keycode::Backspace => {
-                    let out = rndr_phys::raycast::raycast(
-                        cam.transform.position,
-                        cam.transform.fwd(),
-                        &instance.scene_context,
-                    );
-                    if let Some(pos) = out {
+                    let ray = rndr_phys::raycast::Ray {
+                        start: cam.transform.position,
+                        dir: cam.transform.fwd(),
+                        max_distance: None,
+                        scene_context: &instance.scene_context,
+                    };
+
+                    let out = ray.cast();
+
+                    if let Some(vert) = out {
                         let new_square = Object {
                             transform: Transform {
-                                position: pos,
-                                rotation: V3::default(),
+                                position: vert.position,
+                                ..Default::default()
                             },
                             vertices: vec![
-                                Vertex::new(V3::new(-1.0, 0.0, -1.0)),
-                                Vertex::new(V3::new(-1.0, 0.0, 1.0)),
-                                Vertex::new(V3::new(1.0, 0.0, 1.0)),
-                                Vertex::new(V3::new(1.0, 0.0, -1.0)),
+                                Vertex::new_with_color(V3::new(-1.0, 0.0, -1.0), vert.color),
+                                Vertex::new_with_color(V3::new(-1.0, 0.0, 1.0), vert.color),
+                                Vertex::new_with_color(V3::new(1.0, 0.0, 1.0), vert.color),
+                                Vertex::new_with_color(V3::new(1.0, 0.0, -1.0), vert.color),
                             ],
                             triangles: vec![[0, 1, 2], [0, 2, 3]],
                             shader: Box::from(rndr_core::prelude::shader::DefaultShader),

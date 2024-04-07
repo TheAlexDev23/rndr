@@ -1,34 +1,55 @@
-use rndr_core::scene::SceneContext;
+use rndr_core::scene::{object::Vertex, SceneContext};
 use rndr_math::prelude::{M3x3, V3};
 
-pub fn raycast(start: V3, dir: V3, scene_context: &SceneContext) -> Option<V3> {
-    for obj in &scene_context.objects {
-        for triangle in &obj.triangles {
-            let a = obj.vertices[triangle[0]].position;
-            let b = obj.vertices[triangle[1]].position;
-            let c = obj.vertices[triangle[2]].position;
+pub struct Ray<'a> {
+    pub start: V3,
+    pub dir: V3,
+    pub max_distance: Option<f32>,
 
-            let conversion_matrix = M3x3::new([b - a, c - a, -1.0 * dir]).inv();
-            if conversion_matrix.is_none() {
-                continue;
+    pub scene_context: &'a SceneContext,
+}
+
+impl<'a> Ray<'a> {
+    pub fn cast(&self) -> Option<Vertex> {
+        for obj in &self.scene_context.objects {
+            for triangle in &obj.triangles {
+                let a_v = obj.vertices[triangle[0]];
+                let b_v = obj.vertices[triangle[1]];
+                let c_v = obj.vertices[triangle[2]];
+
+                let a = a_v.position;
+                let b = b_v.position;
+                let c = c_v.position;
+
+                let conversion_matrix = M3x3::new([b - a, c - a, -1.0 * self.dir]).inv();
+                if conversion_matrix.is_none() {
+                    continue;
+                }
+
+                let res = (self.start - a) * conversion_matrix.unwrap();
+
+                let t = res.z;
+
+                let v = res.x;
+                let w = res.y;
+
+                if t < 0.0 || v < 0.0 || w < 0.0 || v + w > 1.0 {
+                    continue;
+                }
+
+                if let Some(max_distance) = self.max_distance {
+                    // Apparently making this a one liner is unstable; so 2 nested ifs are required
+                    if t > max_distance {
+                        continue;
+                    }
+                }
+
+                let u = 1.0 - (v + w);
+
+                return Some(Vertex::interpolate((a_v, u), (b_v, v), (c_v, w)));
             }
-
-            let res = (start - a) * conversion_matrix.unwrap();
-
-            let t = res.z;
-
-            let v = res.x;
-            let w = res.y;
-
-            if t < 0.0 || v < 0.0 || w < 0.0 || v + w > 1.0 {
-                continue;
-            }
-
-            let u = 1.0 - (v + w);
-
-            return Some(a * u + b * v + c * w);
         }
-    }
 
-    None
+        None
+    }
 }
