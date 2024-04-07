@@ -7,10 +7,10 @@ pub use pixel::PixelGrid;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use rndr_math::matrix::M3x3;
-use rndr_math::vector::V3;
 pub use shader::FragData;
 pub use shader::FragShader;
 
+use crate::prelude::object::Vertex;
 use crate::prelude::Object;
 use crate::prelude::SceneContext;
 
@@ -83,33 +83,18 @@ impl RenderContext {
             let second_v = object.vertices[triangle[1]];
             let third_v = object.vertices[triangle[2]];
 
-            // VC means virtual color, it's the projected pixel's z value and color
-            let first_vc = (first_projected.z, first_v.color);
-            let second_vc = (second_projected.z, second_v.color);
-            let third_vc = (third_projected.z, third_v.color);
+            let interpolated_vertex =
+                Vertex::interpolate((first_v, f), (second_v, s), (third_v, t));
 
-            let interpolated_color =
-                interpolate_virtual_color((f, first_vc), (s, second_vc), (t, (third_vc)));
-
-            // TODO: use getters and setters to obtain this values on demand in the future
-            // By doing this we could get rid of pointless calculations each pixel
-
-            let relative_position = V3::interpolate3(
-                (first_v.position, f),
-                (second_v.position, s),
-                (third_v.position, t),
-            );
-
-            let space_position = V3::interpolate3(
-                (first_v.position + object.transform.position, f),
-                (second_v.position + object.transform.position, s),
-                (third_v.position + object.transform.position, t),
+            let interpolated_virtual_color = (
+                first_projected.z * f + second_projected.z * s + third_projected.z * t,
+                interpolated_vertex.color,
             );
 
             let mut data = FragData {
-                relative_position,
-                space_position,
-                output_pixel: interpolated_color,
+                relative_position: interpolated_vertex.position,
+                space_position: interpolated_vertex.position + object.transform.position,
+                output_pixel: interpolated_virtual_color,
             };
 
             object.shader.frag(&mut data);
@@ -156,9 +141,9 @@ impl RenderContext {
                 let first_third = triangle_area(pt, first, third);
                 let third_second = triangle_area(pt, third, second);
 
-                const EPILIPSON: f32 = 0.01;
+                const EPSILON: f32 = 0.01;
 
-                if (first_second + first_third + third_second - total_area).abs() <= EPILIPSON {
+                if (first_second + first_third + third_second - total_area).abs() <= EPSILON {
                     let screen_x = x + width as i32;
                     let screen_y = height as i32 + y;
 
@@ -181,30 +166,4 @@ impl RenderContext {
 
 fn triangle_area(p1: (f32, f32), p2: (f32, f32), p3: (f32, f32)) -> f32 {
     0.5 * ((p1.0 * (p2.1 - p3.1) + p2.0 * (p3.1 - p1.1) + p3.0 * (p1.1 - p2.1)).abs())
-}
-
-fn interpolate_virtual_color(
-    v1: (f32, (f32, [u8; 3])),
-    v2: (f32, (f32, [u8; 3])),
-    v3: (f32, (f32, [u8; 3])),
-) -> (f32, [u8; 3]) {
-    let (v1_influence, v2_influence, v3_influence) = (v1.0, v2.0, v3.0);
-
-    let (v1_color, v2_color, v3_color) = (v1.1 .1, v2.1 .1, v3.1 .1);
-    let (v1_z, v2_z, v3_z) = (v1.1 .0, v2.1 .0, v3.1 .0);
-
-    (
-        v1_z * v1_influence + v2_z * v2_influence + v3_z * v3_influence,
-        [
-            (v1_color[0] as f32 * v1_influence
-                + v2_color[0] as f32 * v2_influence
-                + v3_color[0] as f32 * v3_influence) as u8,
-            (v1_color[1] as f32 * v1_influence
-                + v2_color[1] as f32 * v2_influence
-                + v3_color[1] as f32 * v3_influence) as u8,
-            (v1_color[2] as f32 * v1_influence
-                + v2_color[2] as f32 * v2_influence
-                + v3_color[2] as f32 * v3_influence) as u8,
-        ],
-    )
 }
