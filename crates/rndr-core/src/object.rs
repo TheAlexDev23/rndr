@@ -7,7 +7,7 @@ use downcast_rs::{impl_downcast, Downcast};
 #[derive(Default)]
 pub struct Object {
     id: u64,
-    components: Vec<Box<dyn Component>>,
+    components: HashMap<TypeId, Box<dyn Component>>,
 }
 
 impl Object {
@@ -20,31 +20,25 @@ impl Object {
     }
 
     pub fn has_component<T: Component>(&self) -> bool {
-        self.components
-            .iter()
-            .find(|c| c.get_type() == TypeId::of::<T>())
-            .is_some()
+        self.components.contains_key(&TypeId::of::<T>())
     }
 
     pub fn component<T: Component>(&self) -> Option<&T> {
         self.components
-            .iter()
-            .find(|component| component.get_type() == TypeId::of::<T>())
+            .get(&TypeId::of::<T>())
             .map(|c| c.as_ref())?
             .downcast_ref::<T>()
     }
     pub fn component_mut<T: Component>(&mut self) -> Option<&mut T> {
         self.components
-            .iter_mut()
-            .find(|component| component.get_type() == TypeId::of::<T>())
-            .map(|c| c.as_mut())?
+            .get_mut(&TypeId::of::<T>())?
             .downcast_mut::<T>()
     }
 
-    pub fn add_component(&mut self, component: Box<dyn Component>) {
-        let idx = self.components.len();
-        self.components.push(component);
-        self.components[idx].on_added(self.id)
+    pub fn add_component<T: Component>(&mut self, component: Box<T>) {
+        let type_id = TypeId::of::<T>();
+        self.components.insert(TypeId::of::<T>(), component);
+        self.components.get_mut(&type_id).unwrap().on_added(self.id)
     }
 }
 
