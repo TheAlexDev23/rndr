@@ -1,11 +1,11 @@
-use rndr_math::{matrix::M3x3, transform::Transform, vector::V3};
+use std::any::TypeId;
 
-use crate::prelude::Object;
+use rndr_math::prelude::{M3x3, Vertex, V3};
 
-#[derive(Clone)]
+use crate::default_components::Transform;
+use crate::object::Component;
+
 pub struct Camera {
-    pub transform: Transform,
-
     /// Wether the camera should use perspective projection
     pub perspective: bool,
 
@@ -23,6 +23,12 @@ pub struct Camera {
     pub zero_threshold: f32,
 }
 
+impl Component for Camera {
+    fn get_type(&self) -> std::any::TypeId {
+        TypeId::of::<Camera>()
+    }
+}
+
 impl Camera {
     pub fn new(perspective: bool) -> Camera {
         Camera {
@@ -34,15 +40,11 @@ impl Camera {
             },
             near_plane: 0.1,
             zero_threshold: 0.01,
-            transform: Transform {
-                rotation: V3::new(0.0, 0.0, 0.0),
-                ..Default::default()
-            },
         }
     }
 
-    pub fn get_projection_matrix(&mut self) -> M3x3 {
-        let (fwd, right, up) = self.transform.get_orientations_in_bulk();
+    pub fn get_projection_matrix(&self, camera_transform: &Transform) -> M3x3 {
+        let (fwd, right, up) = camera_transform.get_orientations_in_bulk();
 
         M3x3::new([
             V3::new(right.x, up.x, fwd.x),
@@ -51,19 +53,18 @@ impl Camera {
         ])
     }
 
-    pub fn project_point(&self, projection_matrix: M3x3, shape: &Object, index: usize) -> V3 {
-        let mut point = shape.vertices[index].position;
+    pub fn project_point(
+        &self,
+        projection_matrix: M3x3,
+        mut vertex: Vertex,
+        object_transform: &Transform,
+        camera_transform: &Transform,
+    ) -> V3 {
+        object_transform.apply_to_vertex(&mut vertex);
 
-        point = point.rotate(shape.transform.rotation);
+        vertex.position -= camera_transform.position;
 
-        let transformed_pos = shape
-            .transform
-            .position
-            .relative_to(&self.transform.position);
-
-        point += transformed_pos;
-
-        let mut px = projection_matrix * point;
+        let mut px = projection_matrix * vertex.position;
 
         if self.perspective && px.z > 0.0 && px.z > self.zero_threshold {
             let display_surface_offset = self.display_surface_offset.unwrap();

@@ -8,7 +8,9 @@ use sdl2::{
 use thiserror::Error;
 
 use crate::events::EventPump;
-use crate::prelude::{Camera, Object, PixelGrid, RenderContext, SceneContext};
+use crate::object::ObjectManager;
+use crate::prelude::{Object, PixelGrid, RenderContext};
+use crate::render::RenderError;
 
 #[derive(Error, Debug)]
 pub enum InitError {
@@ -27,7 +29,7 @@ pub enum InitError {
 }
 
 #[derive(Error, Debug)]
-pub enum RenderError {
+pub enum RenderApplyError {
     #[error("Could not update buffer texture: {0}")]
     SdlUpdateTexture(#[from] UpdateTextureError),
     #[error("Could not copy buffer texture to canvas: {0}")]
@@ -36,8 +38,7 @@ pub enum RenderError {
 
 pub struct Instance {
     pub event_pump: EventPump,
-
-    pub scene_context: SceneContext,
+    pub object_manager: ObjectManager,
 
     pub(crate) width: u32,
     pub(crate) height: u32,
@@ -87,31 +88,33 @@ impl Instance {
             width,
             height,
             render_context: RenderContext::new(buff_width, buff_height),
-            scene_context: SceneContext {
-                objects: Vec::new(),
-            },
             sdl_instance: SdlInstance {
                 buff_texture,
                 canvas,
             },
+            object_manager: ObjectManager::new(),
         })
     }
 
-    pub fn render(&mut self) {
-        self.render_context.render(&mut self.scene_context);
+    pub fn configure_mesh_rendering_system(&mut self) {
+        self.render_context.configure_mesh_renderer();
     }
 
-    pub fn apply_render(&mut self) -> Result<(), RenderError> {
+    pub fn render(&mut self) -> Result<(), RenderError> {
+        self.render_context.render_objects(&self.object_manager)
+    }
+
+    pub fn apply_render(&mut self) -> Result<(), RenderApplyError> {
         self.sdl_instance.buff_texture.update(
             None,
             self.render_context.pixel_grid.get_pixel_data(),
-            (self.render_context.buff_width * 3) as usize,
+            (self.render_context.pixel_grid.width * 3) as usize,
         )?;
 
         self.sdl_instance
             .canvas
             .copy(&self.sdl_instance.buff_texture, None, None)
-            .map_err(RenderError::SdlCanvasCopy)?;
+            .map_err(RenderApplyError::SdlCanvasCopy)?;
         self.sdl_instance.canvas.present();
 
         self.render_context.pixel_grid.clear();
@@ -119,13 +122,14 @@ impl Instance {
         Ok(())
     }
 
-    pub fn register_object(&mut self, object: Object) -> &mut Object {
-        self.scene_context.objects.push(object);
-        self.scene_context.objects.last_mut().unwrap()
+    pub fn register_object(&mut self, object: Object) -> u64 {
+        self.object_manager.register_object(object)
     }
-
-    pub fn get_camera(&mut self) -> &mut Camera {
-        &mut self.render_context.camera
+    pub fn get_object(&self, index: u64) -> Option<&Object> {
+        self.object_manager.get_object(index)
+    }
+    pub fn get_object_mut(&mut self, index: u64) -> Option<&mut Object> {
+        self.object_manager.get_object_mut(index)
     }
 
     pub fn get_pixel_grid(&mut self) -> &mut PixelGrid {

@@ -1,8 +1,12 @@
+use std::any::TypeId;
+
+use rndr_core::default_components::render::MeshRenderable;
+use rndr_core::default_components::Transform;
+use rndr_core::default_objects;
 use rndr_core::events::{Event, Keycode};
 use rndr_core::prelude::Instance;
 
 use rndr_core::render::FragShader;
-use rndr_core::scene::Object;
 
 pub struct ZShader;
 
@@ -23,12 +27,18 @@ fn main() {
     let mut instance =
         Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
 
-    let mut teapot =
-        Object::from_stl("../../../../Utah_teapot_(solid).stl").expect("Could not load object");
+    let mut mesh_obj =
+        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh");
 
-    teapot.shader = Box::from(ZShader);
+    mesh_obj
+        .component_mut(TypeId::of::<MeshRenderable>())
+        .unwrap()
+        .downcast_mut::<MeshRenderable>()
+        .unwrap()
+        .shader = Box::new(ZShader);
 
-    instance.register_object(teapot);
+    instance.register_object(mesh_obj);
+    unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 
     let mut timer = std::time::Instant::now();
     let mut frames = 0;
@@ -40,8 +50,8 @@ fn main() {
         for event in poll {
             handle_input_event(event, &mut instance);
         }
-        instance.render();
-        instance.apply_render().expect("Could not render");
+        instance.render().expect("Could not render");
+        instance.apply_render().expect("Could not apply render");
         frames += 1;
     }
 }
@@ -54,10 +64,20 @@ fn handle_fps(timer: &mut std::time::Instant, frames: &mut i32) {
     }
 }
 
+static mut CAMERA_ID: u64 = 0;
+
 fn handle_input_event(event: Event, instance: &mut Instance) {
     const INCREASE_ROTATION: f32 = 0.08;
+    const INCREASE_ROTATION_KEY: f32 = 10.0;
     const INCREASE_POSITION: f32 = 0.2;
-    let cam_transform = &mut instance.get_camera().transform;
+
+    let cam_obj = instance.get_object_mut(unsafe { CAMERA_ID }).unwrap();
+
+    let cam_transform = cam_obj
+        .component_mut(TypeId::of::<Transform>())
+        .unwrap()
+        .downcast_mut::<Transform>()
+        .unwrap();
 
     match event {
         Event::Quit { timestamp: _ } => {
@@ -100,16 +120,16 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
                     cam_transform.position -= cam_transform.right() * INCREASE_POSITION;
                 }
                 Keycode::Left => {
-                    cam_transform.rotation.z += INCREASE_ROTATION;
+                    cam_transform.rotation.z -= INCREASE_ROTATION_KEY;
                 }
                 Keycode::Right => {
-                    cam_transform.rotation.z -= INCREASE_ROTATION;
+                    cam_transform.rotation.z += INCREASE_ROTATION_KEY;
                 }
                 Keycode::Up => {
-                    cam_transform.rotation.y += INCREASE_ROTATION;
+                    cam_transform.rotation.y -= INCREASE_ROTATION_KEY;
                 }
                 Keycode::Down => {
-                    cam_transform.rotation.y -= INCREASE_ROTATION;
+                    cam_transform.rotation.y += INCREASE_ROTATION_KEY;
                 }
                 _ => (),
             };

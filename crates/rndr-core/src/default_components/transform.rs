@@ -1,6 +1,10 @@
-use super::prelude::V3;
+use std::any::TypeId;
 
-#[derive(Default, Clone)]
+use rndr_math::prelude::{Vertex, V3};
+
+use crate::prelude::Component;
+
+#[derive(Default)]
 pub struct Transform {
     pub position: V3,
     pub rotation: V3,
@@ -40,5 +44,16 @@ impl Transform {
 
     pub fn up(&self) -> V3 {
         UP.rotate(self.rotation)
+    }
+
+    pub fn apply_to_vertex(&self, vertex: &mut Vertex) {
+        vertex.position = vertex.position.rotate(self.rotation);
+        vertex.position += self.position;
+    }
+}
+
+impl Component for Transform {
+    fn get_type(&self) -> std::any::TypeId {
+        TypeId::of::<Transform>()
     }
 }

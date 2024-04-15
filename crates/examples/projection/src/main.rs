@@ -1,5 +1,9 @@
+use std::any::TypeId;
+
+use rndr_core::default_components::Transform;
+use rndr_core::default_objects;
 use rndr_core::events::{Event, Keycode};
-use rndr_core::prelude::{Instance, Object};
+use rndr_core::prelude::Instance;
 
 const HEIGHT: u32 = 500;
 const WIDTH: u32 = 1000;
@@ -11,9 +15,12 @@ fn main() {
     let mut instance =
         Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
 
+    instance.configure_mesh_rendering_system();
+
     instance.register_object(
-        Object::from_stl("../../../Utah_teapot_(solid).stl").expect("Could not load object"),
+        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh"),
     );
+    unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 
     let mut timer = std::time::Instant::now();
     let mut frames = 0;
@@ -25,8 +32,9 @@ fn main() {
         for event in poll {
             handle_input_event(event, &mut instance);
         }
-        instance.render();
-        instance.apply_render().expect("Could not render");
+
+        instance.render().expect("Could not render");
+        instance.apply_render().expect("Could not apply render");
         frames += 1;
     }
 }
@@ -39,11 +47,20 @@ fn handle_fps(timer: &mut std::time::Instant, frames: &mut i32) {
     }
 }
 
+static mut CAMERA_ID: u64 = 0;
+
 fn handle_input_event(event: Event, instance: &mut Instance) {
     const INCREASE_ROTATION: f32 = 0.08;
     const INCREASE_ROTATION_KEY: f32 = 10.0;
     const INCREASE_POSITION: f32 = 0.2;
-    let cam = &mut instance.get_camera();
+
+    let cam_obj = instance.get_object_mut(unsafe { CAMERA_ID }).unwrap();
+
+    let cam_transform = cam_obj
+        .component_mut(TypeId::of::<Transform>())
+        .unwrap()
+        .downcast_mut::<Transform>()
+        .unwrap();
 
     match event {
         Event::Quit { timestamp: _ } => {
@@ -59,8 +76,8 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
             xrel,
             yrel,
         } => {
-            cam.transform.rotation.z += INCREASE_ROTATION * xrel as f32;
-            cam.transform.rotation.y += INCREASE_ROTATION * yrel as f32;
+            cam_transform.rotation.z += INCREASE_ROTATION * xrel as f32;
+            cam_transform.rotation.y += INCREASE_ROTATION * yrel as f32;
         }
         Event::KeyDown {
             keycode: Some(keycode),
@@ -68,40 +85,34 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
         } => {
             match keycode {
                 Keycode::E => {
-                    cam.transform.position += cam.transform.up() * INCREASE_POSITION;
+                    cam_transform.position += cam_transform.up() * INCREASE_POSITION;
                 }
                 Keycode::Q => {
-                    cam.transform.position -= cam.transform.up() * INCREASE_POSITION;
+                    cam_transform.position -= cam_transform.up() * INCREASE_POSITION;
                 }
                 Keycode::W => {
-                    cam.transform.position += cam.transform.fwd() * INCREASE_POSITION;
+                    cam_transform.position += cam_transform.fwd() * INCREASE_POSITION;
                 }
                 Keycode::S => {
-                    cam.transform.position -= cam.transform.fwd() * INCREASE_POSITION;
+                    cam_transform.position -= cam_transform.fwd() * INCREASE_POSITION;
                 }
                 Keycode::A => {
-                    cam.transform.position += cam.transform.right() * INCREASE_POSITION;
+                    cam_transform.position += cam_transform.right() * INCREASE_POSITION;
                 }
                 Keycode::D => {
-                    cam.transform.position -= cam.transform.right() * INCREASE_POSITION;
+                    cam_transform.position -= cam_transform.right() * INCREASE_POSITION;
                 }
                 Keycode::Left => {
-                    cam.transform.rotation.z -= INCREASE_ROTATION_KEY;
+                    cam_transform.rotation.z -= INCREASE_ROTATION_KEY;
                 }
                 Keycode::Right => {
-                    cam.transform.rotation.z += INCREASE_ROTATION_KEY;
+                    cam_transform.rotation.z += INCREASE_ROTATION_KEY;
                 }
                 Keycode::Up => {
-                    cam.transform.rotation.y -= INCREASE_ROTATION_KEY;
+                    cam_transform.rotation.y -= INCREASE_ROTATION_KEY;
                 }
                 Keycode::Down => {
-                    cam.transform.rotation.y += INCREASE_ROTATION_KEY;
-                }
-                Keycode::Plus => {
-                    cam.display_surface_offset.as_mut().unwrap().z += 2.5;
-                }
-                Keycode::Minus => {
-                    cam.display_surface_offset.as_mut().unwrap().z -= 2.5;
+                    cam_transform.rotation.y += INCREASE_ROTATION_KEY;
                 }
                 _ => (),
             };

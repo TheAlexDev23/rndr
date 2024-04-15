@@ -10,6 +10,7 @@ const BUFF_WIDTH: u32 = 100;
 fn main() {
     let mut instance =
         Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
+
     loop {
         for event in instance.event_pump.poll_iter() {
             if let Event::Quit { timestamp: _ } = event {
@@ -17,8 +18,8 @@ fn main() {
             }
         }
         update(&mut instance.get_pixel_grid());
-        instance.render();
-        instance.apply_render().expect("Could not render");
+        instance.render().expect("Could not render");
+        instance.apply_render().expect("Could not apply render");
     }
 }
 

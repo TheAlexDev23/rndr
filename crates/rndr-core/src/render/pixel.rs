@@ -1,5 +1,6 @@
 pub struct PixelGrid {
-    width: u32,
+    pub width: u32,
+    pub height: u32,
     pixel_colors: Vec<u8>,
     pixel_zs: Vec<f32>,
 }
@@ -11,6 +12,7 @@ impl PixelGrid {
     pub fn new(width: u32, height: u32) -> PixelGrid {
         PixelGrid {
             width,
+            height,
             pixel_colors: vec![0; (width * height * 3) as usize],
             pixel_zs: vec![DEFAULT_Z; (width * height) as usize],
         }
