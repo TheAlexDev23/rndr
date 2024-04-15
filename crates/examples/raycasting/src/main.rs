@@ -1,5 +1,3 @@
-use std::any::TypeId;
-
 use rndr_core::default_components::render::MeshRenderable;
 use rndr_core::default_components::Transform;
 use rndr_core::default_objects;
@@ -57,11 +55,7 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
 
     let cam_obj = instance.get_object_mut(unsafe { CAMERA_ID }).unwrap();
 
-    let cam_transform = cam_obj
-        .component_mut(TypeId::of::<Transform>())
-        .unwrap()
-        .downcast_mut::<Transform>()
-        .unwrap();
+    let cam_transform = cam_obj.component_mut::<Transform>().unwrap();
 
     match event {
         Event::Quit { timestamp: _ } => {

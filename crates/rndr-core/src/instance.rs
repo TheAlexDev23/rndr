@@ -40,9 +40,6 @@ pub struct Instance {
     pub event_pump: EventPump,
     pub object_manager: ObjectManager,
 
-    pub(crate) width: u32,
-    pub(crate) height: u32,
-
     pub(crate) render_context: RenderContext,
 
     pub(crate) sdl_instance: SdlInstance,
@@ -85,8 +82,6 @@ impl Instance {
 
         Ok(Instance {
             event_pump,
-            width,
-            height,
             render_context: RenderContext::new(buff_width, buff_height),
             sdl_instance: SdlInstance {
                 buff_texture,

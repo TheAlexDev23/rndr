@@ -1,5 +1,3 @@
-use std::any::TypeId;
-
 use rndr_core::default_components::render::MeshRenderable;
 use rndr_core::default_components::Transform;
 use rndr_core::default_objects;
@@ -30,12 +28,7 @@ fn main() {
     let mut mesh_obj =
         default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh");
 
-    mesh_obj
-        .component_mut(TypeId::of::<MeshRenderable>())
-        .unwrap()
-        .downcast_mut::<MeshRenderable>()
-        .unwrap()
-        .shader = Box::new(ZShader);
+    mesh_obj.component_mut::<MeshRenderable>().unwrap().shader = Box::new(ZShader);
 
     instance.register_object(mesh_obj);
     unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
@@ -73,11 +66,7 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
 
     let cam_obj = instance.get_object_mut(unsafe { CAMERA_ID }).unwrap();
 
-    let cam_transform = cam_obj
-        .component_mut(TypeId::of::<Transform>())
-        .unwrap()
-        .downcast_mut::<Transform>()
-        .unwrap();
+    let cam_transform = cam_obj.component_mut::<Transform>().unwrap();
 
     match event {
         Event::Quit { timestamp: _ } => {

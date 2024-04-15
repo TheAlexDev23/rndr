@@ -5,15 +5,13 @@ pub use pixel::PixelGrid;
 pub use shader::FragData;
 pub use shader::FragShader;
 
-use std::any::TypeId;
-
 use thiserror::Error;
 
 use crate::default_components::{
     render::{Camera, MeshRenderable},
     Transform,
 };
-use crate::default_systems::mesh_renderer::{MeshRenderError, MeshRendererSystem};
+use crate::default_systems::mesh_renderer::MeshRendererSystem;
 use crate::prelude::ObjectManager;
 
 pub(crate) struct RenderContext {
@@ -25,8 +23,6 @@ pub(crate) struct RenderContext {
 pub enum RenderError {
     #[error("No camera present")]
     NoCamera,
-    #[error("Mesh could not be rendered: {0}")]
-    MeshRenderError(#[from] MeshRenderError),
 }
 
 impl RenderContext {
@@ -50,28 +46,18 @@ impl RenderContext {
 
             let camera_object = object_manager
                 .objects_iter()
-                .find(|obj| obj.component(TypeId::of::<Camera>()).is_some());
+                .find(|obj| obj.component::<Camera>().is_some());
 
             if camera_object.is_none() {
                 return Err(RenderError::NoCamera);
             }
 
-            let camera = camera_object
-                .unwrap()
-                .component(TypeId::of::<Camera>())
-                .unwrap()
-                .downcast_ref::<Camera>()
-                .unwrap();
+            let camera = camera_object.unwrap().component::<Camera>().unwrap();
 
-            let camera_transform = camera_object
-                .unwrap()
-                .component(TypeId::of::<Transform>())
-                .unwrap()
-                .downcast_ref::<Transform>()
-                .unwrap();
+            let camera_transform = camera_object.unwrap().component::<Transform>().unwrap();
 
             for object in object_manager.objects_iter() {
-                if object.component(TypeId::of::<MeshRenderable>()).is_none() {
+                if !object.has_component::<MeshRenderable>() {
                     continue;
                 }
 
@@ -82,7 +68,7 @@ impl RenderContext {
                     &object,
                     &camera,
                     &camera_transform,
-                )?;
+                );
             }
         }
 

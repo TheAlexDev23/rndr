@@ -1,5 +1,3 @@
-use std::any::TypeId;
-
 use rndr_core::default_components::{render::MeshRenderable, Transform};
 
 use rndr_core::object::ObjectManager;
@@ -16,14 +14,11 @@ pub struct Ray<'a> {
 impl<'a> Ray<'a> {
     pub fn cast(&self) -> Option<Vertex> {
         for obj in self.objects.objects_iter() {
-            let mesh = match obj.component(TypeId::of::<MeshRenderable>()) {
-                Some(obj) => obj.downcast_ref::<MeshRenderable>().unwrap(),
+            let mesh = match obj.component::<MeshRenderable>() {
+                Some(obj) => obj,
                 None => continue,
             };
-            let transform = match obj.component(TypeId::of::<Transform>()) {
-                Some(obj) => obj.downcast_ref::<Transform>().unwrap(),
-                None => continue,
-            };
+            let transform = obj.component::<Transform>().unwrap();
 
             for triangle in &mesh.triangles {
                 let a_v = mesh.vertices[triangle[0]];

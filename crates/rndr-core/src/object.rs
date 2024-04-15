@@ -19,17 +19,26 @@ impl Object {
         self.id = id
     }
 
-    pub fn component(&self, type_id: TypeId) -> Option<&dyn Component> {
+    pub fn has_component<T: Component>(&self) -> bool {
         self.components
             .iter()
-            .find(|component| component.get_type() == type_id)
-            .map(|c| c.as_ref())
+            .find(|c| c.get_type() == TypeId::of::<T>())
+            .is_some()
     }
-    pub fn component_mut(&mut self, type_id: TypeId) -> Option<&mut dyn Component> {
+
+    pub fn component<T: Component>(&self) -> Option<&T> {
+        self.components
+            .iter()
+            .find(|component| component.get_type() == TypeId::of::<T>())
+            .map(|c| c.as_ref())?
+            .downcast_ref::<T>()
+    }
+    pub fn component_mut<T: Component>(&mut self) -> Option<&mut T> {
         self.components
             .iter_mut()
-            .find(|component| component.get_type() == type_id)
-            .map(|c| c.as_mut())
+            .find(|component| component.get_type() == TypeId::of::<T>())
+            .map(|c| c.as_mut())?
+            .downcast_mut::<T>()
     }
 
     pub fn add_component(&mut self, component: Box<dyn Component>) {

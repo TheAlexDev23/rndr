@@ -1,7 +1,4 @@
-use std::any::TypeId;
 use std::sync::Arc;
-
-use thiserror::Error;
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
@@ -17,14 +14,6 @@ use crate::{
     prelude::PixelGrid,
 };
 
-#[derive(Error, Debug)]
-pub enum MeshRenderError {
-    #[error("Object set to render requires a Transform component")]
-    MissingTransform,
-    #[error("Object set to render requires a MeshRenderable component")]
-    MissingMesh,
-}
-
 pub struct MeshRendererSystem;
 
 impl MeshRendererSystem {
@@ -36,24 +25,13 @@ impl MeshRendererSystem {
         object: &Object,
         camera: &Camera,
         camera_transform: &Transform,
-    ) -> Result<(), MeshRenderError> {
+    ) {
         let projection_matrix = camera.get_projection_matrix(camera_transform);
 
         let camera = Arc::from(camera);
 
-        let object_transform = match object.component(TypeId::of::<Transform>()) {
-            Some(transform) => transform,
-            None => return Err(MeshRenderError::MissingTransform),
-        }
-        .downcast_ref::<Transform>()
-        .unwrap();
-
-        let object_mesh = match object.component(TypeId::of::<MeshRenderable>()) {
-            Some(mesh) => mesh,
-            None => return Err(MeshRenderError::MissingMesh),
-        }
-        .downcast_ref::<MeshRenderable>()
-        .unwrap();
+        let object_transform = object.component::<Transform>().unwrap();
+        let object_mesh = object.component::<MeshRenderable>().unwrap();
 
         let pixel_changes: Vec<_> = object_mesh
             .triangles
@@ -77,8 +55,6 @@ impl MeshRendererSystem {
                 pixel_grid.set_pixel(pixel.0, pixel.1, pixel.2);
             }
         }
-
-        Ok(())
     }
 
     fn render_triangle(
