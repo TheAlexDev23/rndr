@@ -17,10 +17,12 @@ fn main() {
     let mut instance =
         Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
 
+    instance.configure_mesh_rendering_system();
+
+    unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
     instance.register_object(
         default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh"),
     );
-    unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 
     let mut timer = std::time::Instant::now();
     let mut frames = 0;

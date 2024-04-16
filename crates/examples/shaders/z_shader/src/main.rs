@@ -25,8 +25,10 @@ fn main() {
     let mut instance =
         Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
 
-    let mut mesh_obj =
-        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh");
+    instance.configure_mesh_rendering_system();
+
+    let mut mesh_obj = default_objects::stl_mesh("../../../../Utah_teapot_(solid).stl")
+        .expect("Could not load mesh");
 
     mesh_obj.component_mut::<MeshRenderable>().unwrap().shader = Box::new(ZShader);
 

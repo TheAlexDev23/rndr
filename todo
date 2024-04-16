@@ -2,5 +2,3 @@ Runtime object deletion.
 
 - Add ability for multiple cameras, but only render main
 - Add object tags and search specific items with said tags. (e.g when searching for a rendering camera in mesh rendering search for the tag not for the component)
-- Maybe think of a way to manage component dependencies
-- Improve component search speed
