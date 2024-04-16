@@ -1,9 +1,12 @@
-use std::ops::ControlFlow;
-
 use rndr_core::default_components::{render::MeshRenderable, Transform};
 
 use rndr_core::object::{Object, ObjectManager};
 use rndr_math::prelude::{M3x3, Vertex, V3};
+
+pub struct HitInfo {
+    pub vertex: Vertex,
+    pub distance: f32,
+}
 
 pub struct Ray<'a> {
     pub start: V3,
@@ -14,29 +17,26 @@ pub struct Ray<'a> {
 }
 
 impl<'a> Ray<'a> {
-    pub fn cast(&self) -> Option<Vertex> {
+    pub fn cast(&self) -> Option<HitInfo> {
+        let mut intersects = Vec::new();
         for obj in self.objects.objects_iter() {
             let mesh = match obj.component::<MeshRenderable>() {
-                Some(obj) => obj,
+                Some(mesh) => mesh,
                 None => continue,
             };
             let transform = obj.component::<Transform>().unwrap();
-
-            for triangle in &mesh.triangles {
-                if let Some(v) = ray_mesh_triangle_intersect(
-                    self.dir,
-                    self.start,
-                    self.max_distance,
-                    mesh,
-                    triangle,
-                    transform,
-                ) {
-                    return Some(v);
-                }
-            }
+            intersects.extend(find_all_mesh_ray_intersections(
+                mesh,
+                transform,
+                self.dir,
+                self.start,
+                self.max_distance,
+            ))
         }
 
-        None
+        intersects
+            .into_iter()
+            .reduce(|a, b| if a.distance < b.distance { a } else { b })
     }
 }
 
@@ -49,76 +49,68 @@ pub struct ObjectIntersectionRay<'a> {
 }
 
 impl<'a> ObjectIntersectionRay<'a> {
-    pub fn cast(&self) -> Vec<Vertex> {
+    pub fn cast(&self) -> Vec<HitInfo> {
         let mesh = self.object.component::<MeshRenderable>().unwrap();
         let transform = self.object.component::<Transform>().unwrap();
-        let mut ret = Vec::new();
-
-        for triangle in &mesh.triangles {
-            if let Some(v) = ray_mesh_triangle_intersect(
-                self.dir,
-                self.start,
-                self.max_distance,
-                mesh,
-                triangle,
-                transform,
-            ) {
-                ret.push(v);
-            }
-        }
-        ret
+        find_all_mesh_ray_intersections(mesh, transform, self.dir, self.start, self.max_distance)
     }
 }
 
-fn ray_mesh_triangle_intersect(
+fn find_all_mesh_ray_intersections(
+    mesh: &MeshRenderable,
+    transform: &Transform,
     dir: V3,
     start: V3,
     max_distance: Option<f32>,
-    mesh: &MeshRenderable,
-    triangle: &[usize; 3],
-    transform: &Transform,
-) -> Option<Vertex> {
-    let a_v = mesh.vertices[triangle[0]];
-    let b_v = mesh.vertices[triangle[1]];
-    let c_v = mesh.vertices[triangle[2]];
+) -> Vec<HitInfo> {
+    let mut ret = Vec::new();
+    for triangle in &mesh.triangles {
+        let a_v = mesh.vertices[triangle[0]];
+        let b_v = mesh.vertices[triangle[1]];
+        let c_v = mesh.vertices[triangle[2]];
 
-    let mut a = a_v.position;
-    let mut b = b_v.position;
-    let mut c = c_v.position;
+        let mut a = a_v.position;
+        let mut b = b_v.position;
+        let mut c = c_v.position;
 
-    a = a.rotate(transform.rotation);
-    b = b.rotate(transform.rotation);
-    c = c.rotate(transform.rotation);
+        a = a.rotate(transform.rotation);
+        b = b.rotate(transform.rotation);
+        c = c.rotate(transform.rotation);
 
-    a += transform.position;
-    b += transform.position;
-    c += transform.position;
+        a += transform.position;
+        b += transform.position;
+        c += transform.position;
 
-    let conversion_matrix = M3x3::new([b - a, c - a, -1.0 * dir]).inv();
+        let conversion_matrix = M3x3::new([b - a, c - a, -1.0 * dir]).inv();
 
-    if conversion_matrix.is_none() {
-        return None;
-    }
-
-    let res = (start - a) * conversion_matrix.unwrap();
-
-    let t = res.z;
-    let v = res.x;
-    let w = res.y;
-
-    if t < 0.0 || v < 0.0 || w < 0.0 || v + w > 1.0 {
-        return None;
-    }
-
-    if let Some(max_distance) = max_distance {
-        // Apparently making this a one liner is unstable; so 2 nested ifs are required
-        if t > max_distance {
-            return None;
+        if conversion_matrix.is_none() {
+            continue;
         }
+
+        let res = (start - a) * conversion_matrix.unwrap();
+
+        let t = res.z;
+        let v = res.x;
+        let w = res.y;
+
+        if t < 0.0 || v < 0.0 || w < 0.0 || v + w > 1.0 {
+            continue;
+        }
+
+        if let Some(max_distance) = max_distance {
+            // Apparently making this a one liner is unstable; so 2 nested ifs are required
+            if t > max_distance {
+                continue;
+            }
+        }
+
+        let u = 1.0 - (v + w);
+        let vertex = Vertex::interpolate((a_v, u), (b_v, v), (c_v, w));
+
+        ret.push(HitInfo {
+            vertex,
+            distance: t,
+        });
     }
-
-    let u = 1.0 - (v + w);
-    let v = Vertex::interpolate((a_v, u), (b_v, v), (c_v, w));
-
-    Some(v)
+    ret
 }

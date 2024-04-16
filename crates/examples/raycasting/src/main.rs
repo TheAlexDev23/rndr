@@ -91,7 +91,8 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
 
                     let out = ray.cast();
 
-                    if let Some(vert) = out {
+                    if let Some(hit) = out {
+                        let vert = hit.vertex;
                         let transform = Transform {
                             position: vert.position,
                             rotation: V3::default(),
