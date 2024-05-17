@@ -50,18 +50,24 @@ impl MeshCollider {
         let self_mesh = self.get_mesh(object_manager);
 
         for vertex in self_mesh.vertices.iter() {
+            let center_vertex_distance = (vertex.position - self_mesh.center).mag();
             let dir = (vertex.position - self_mesh.center).norm();
             let ray = ObjectIntersectionRay {
                 dir,
-                start: vertex.position,
+                start: self_mesh.center,
                 max_distance: None,
                 object: other,
             };
 
             let hit = ray.cast(object_manager);
-            let len = hit.len();
 
-            if len % 2 != 0 {
+            if hit
+                .iter()
+                .filter(|hit| hit.distance >= center_vertex_distance)
+                .count()
+                % 2
+                != 0
+            {
                 return Some(hit);
             }
         }
@@ -156,28 +162,39 @@ impl Collidable for MeshCollider {
         let other = other.get_object(object_manager);
 
         self_mesh.vertices.par_iter().find_map_first(|vertex| {
+            let center_vertex_distance = (vertex.position - self_mesh_center).mag();
             let dir = (vertex.position - self_mesh_center).norm();
-            let mut ray = ObjectIntersectionRay {
+            let ray = ObjectIntersectionRay {
                 dir,
-                start: vertex.position + self_position,
+                start: self_mesh_center + self_position,
                 max_distance: None,
-                object: &other,
+                object: other,
             };
 
             let intersects = ray.cast(object_manager);
             // It is verified that the 2 objects are intersecting eachother
-            if intersects.len() % 2 != 0 {
-                // Casting from the center towards the vertex until we find the minimal point of collision between the 2 objects
-                ray.start = self_mesh_center + self_position;
-                let intersects = ray.cast(object_manager);
-
+            if intersects
+                .iter()
+                .filter(|hit| hit.distance >= center_vertex_distance)
+                .count()
+                % 2
+                != 0
+            {
                 // For now we return the first found vertex intersection. Which given that the tim step is not infinetely small
                 // this result is probably not the first actual vertex intersection that happened within the last collision check.
                 // In the future the first intersection vertex could be calculated. But I do not know how by now.
                 return Some(
                     intersects
                         .into_iter()
-                        .reduce(|a, b| if a.distance < b.distance { a } else { b })
+                        .reduce(|a, b| {
+                            if b.distance > center_vertex_distance {
+                                a
+                            } else if a.distance < b.distance {
+                                a
+                            } else {
+                                b
+                            }
+                        })
                         .unwrap()
                         .vertex,
                 );
