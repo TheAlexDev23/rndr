@@ -1,12 +1,11 @@
 [package]
-name = "rndr-phys"
+name = "collision_detection"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rndr-math = { path = "../rndr-math" }
-rndr-core = { path = "../rndr-core" }
-
-rayon = "1.10"
+rndr-core = { path = "../../rndr-core/" }
+rndr-math = { path = "../../rndr-math/" }
+rndr-phys = { path = "../../rndr-phys/" }

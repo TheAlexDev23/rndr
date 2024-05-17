@@ -5,6 +5,7 @@ use rndr_math::prelude::{M3x3, Vertex, V3};
 use crate::default_components::Transform;
 use crate::object::Component;
 
+#[derive(Debug)]
 pub struct Camera {
     /// Wether the camera should use perspective projection
     pub perspective: bool,

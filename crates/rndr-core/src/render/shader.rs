@@ -1,4 +1,7 @@
+use std::fmt::Debug;
+
 use getset::{Getters, MutGetters, Setters};
+
 use rndr_math::vector::V3;
 
 #[derive(Getters, MutGetters, Setters)]
@@ -12,10 +15,11 @@ pub struct FragData {
     pub(crate) output_pixel: (f32, [u8; 3]),
 }
 
-pub trait FragShader: Sync + Send {
+pub trait FragShader: Debug + Sync + Send {
     fn frag(&self, data: &mut FragData);
 }
 
+#[derive(Debug)]
 pub struct DefaultShader;
 impl FragShader for DefaultShader {
     fn frag(&self, _data: &mut FragData) {}

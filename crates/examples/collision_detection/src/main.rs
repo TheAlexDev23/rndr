@@ -1,20 +1,12 @@
-use rndr_core::default_components::render::MeshRenderable;
 use rndr_core::default_components::Transform;
 use rndr_core::default_objects;
 use rndr_core::events::{Event, Keycode};
 use rndr_core::prelude::Instance;
 
-use rndr_core::render::FragShader;
+use rndr_phys::components::MeshCollider;
+use rndr_phys::systems::collision_manager::CollisionManager;
 
-#[derive(Debug)]
-pub struct ZShader;
-
-impl FragShader for ZShader {
-    fn frag(&self, data: &mut rndr_core::prelude::FragData) {
-        let color = (255.0 * data.output_pixel().0) as u8;
-        data.output_pixel_mut().1 = [color, color, color]
-    }
-}
+use rndr_math::prelude::V3;
 
 const HEIGHT: u32 = 500;
 const WIDTH: u32 = 1000;
@@ -28,16 +20,33 @@ fn main() {
 
     instance.configure_mesh_rendering_system();
 
-    let mut mesh_obj = default_objects::stl_mesh("../../../../Utah_teapot_(solid).stl")
-        .expect("Could not load mesh");
+    let mut obj =
+        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh");
 
-    mesh_obj.component_mut::<MeshRenderable>().unwrap().shader = Box::new(ZShader);
+    obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, -5.0, 0.0);
+    obj.add_component(MeshCollider::default().into());
 
-    instance.register_object(mesh_obj);
+    instance.register_object(obj);
+
+    let mut obj =
+        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh");
+
+    obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, 5.0, 0.0);
+    obj.add_component(MeshCollider::default().into());
+
+    instance.register_object(obj);
+
+    let collision_manager = CollisionManager;
+
     unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 
     let mut timer = std::time::Instant::now();
     let mut frames = 0;
+    collision_manager.tick(&mut instance.object_manager);
+    println!(
+        "Collision check tick took: {}",
+        (std::time::Instant::now() - timer).as_secs_f32()
+    );
     loop {
         handle_fps(&mut timer, &mut frames);
 
@@ -46,6 +55,7 @@ fn main() {
         for event in poll {
             handle_input_event(event, &mut instance);
         }
+
         instance.render().expect("Could not render");
         instance.apply_render().expect("Could not apply render");
         frames += 1;
@@ -54,7 +64,7 @@ fn main() {
 
 fn handle_fps(timer: &mut std::time::Instant, frames: &mut i32) {
     if (std::time::Instant::now() - *timer).as_secs_f32() >= 1.0 {
-        println!("FPS: {frames}");
+        println!("FPS: {}", frames);
         *timer = std::time::Instant::now();
         *frames = 0;
     }

@@ -1,6 +1,6 @@
 use crate::prelude::V3;
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct Vertex {
     pub position: V3,
     pub color: [u8; 3],

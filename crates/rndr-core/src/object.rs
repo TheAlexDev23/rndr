@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug};
 
 use std::any::TypeId;
 
 use downcast_rs::{impl_downcast, Downcast};
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Object {
     id: u64,
     components: HashMap<TypeId, Box<dyn Component>>,
@@ -17,6 +17,10 @@ impl Object {
 
     pub(crate) fn receive_id(&mut self, id: u64) {
         self.id = id
+    }
+
+    pub fn id(&self) -> u64 {
+        self.id
     }
 
     pub fn has_component<T: Component>(&self) -> bool {
@@ -42,7 +46,7 @@ impl Object {
     }
 }
 
-pub trait Component: Downcast {
+pub trait Component: Downcast + Debug + Sync + Send {
     fn get_type(&self) -> TypeId;
 
     /// Gets called when added as component on an object
@@ -68,10 +72,16 @@ impl ObjectManager {
         }
     }
 
-    pub fn register_object(&mut self, mut object: Object) -> u64 {
+    pub fn register_object(&mut self, object: Object) -> u64 {
         let idx = self.obj_index;
+        self.objects.insert(idx, object);
+
+        let object = self.get_object_mut(idx).unwrap();
         object.receive_id(idx);
-        self.objects.insert(self.obj_index, object);
+        for cmp in self.get_object_mut(idx).unwrap().components.values_mut() {
+            cmp.on_added(idx)
+        }
+
         self.obj_index += 1;
         idx
     }

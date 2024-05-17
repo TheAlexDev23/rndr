@@ -7,6 +7,8 @@ use rndr_core::prelude::{Instance, Object};
 use rndr_math::prelude::*;
 use rndr_math::vertex::Vertex;
 
+use rndr_phys::components::MeshCollider;
+
 const HEIGHT: u32 = 500;
 const WIDTH: u32 = 1000;
 
@@ -20,9 +22,11 @@ fn main() {
     instance.configure_mesh_rendering_system();
 
     unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
-    instance.register_object(
-        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh"),
-    );
+
+    let mut teapot =
+        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh");
+    teapot.add_component(MeshCollider::default().into());
+    instance.register_object(teapot);
 
     let mut timer = std::time::Instant::now();
     let mut frames = 0;
@@ -92,6 +96,7 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
                     let out = ray.cast();
 
                     if let Some(hit) = out {
+                        println!("{hit:?}");
                         let vert = hit.vertex;
                         let transform = Transform {
                             position: vert.position,
@@ -105,6 +110,7 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
                                 Vertex::new_with_color(V3::new(1.0, 0.0, 1.0), vert.color),
                                 Vertex::new_with_color(V3::new(1.0, 0.0, -1.0), vert.color),
                             ],
+                            center: V3::new(0.0, 0.0, 0.0),
                             triangles: vec![[0, 1, 2], [0, 2, 3]],
                             shader: Box::from(rndr_core::prelude::shader::DefaultShader),
                         };
@@ -114,6 +120,8 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
                         obj.add_component(Box::new(mesh));
 
                         instance.register_object(obj);
+                    } else {
+                        println!("No hit");
                     }
                 }
                 Keycode::E => {

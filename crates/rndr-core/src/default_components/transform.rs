@@ -4,7 +4,7 @@ use rndr_math::prelude::{Vertex, V3};
 
 use crate::prelude::Component;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Transform {
     pub position: V3,
     pub rotation: V3,
