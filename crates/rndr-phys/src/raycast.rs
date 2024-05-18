@@ -44,7 +44,7 @@ impl<'a> Ray<'a> {
         let mut intersects = Vec::new();
         for obj in self.objects.objects_iter() {
             let raycastable = match get_raycastable(obj) {
-                Some(mesh) => mesh,
+                Some(raycastable) => raycastable,
                 None => continue,
             };
 

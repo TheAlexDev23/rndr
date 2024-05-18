@@ -77,6 +77,18 @@ impl V3 {
     pub fn interpolate3(v1: (V3, f32), v2: (V3, f32), v3: (V3, f32)) -> V3 {
         v1.0 * v1.1 + v2.0 * v2.1 + v3.0 * v3.1
     }
+
+    pub fn hadamard_product(&self, other: V3) -> V3 {
+        V3 {
+            x: self.x * other.x,
+            y: self.y * other.y,
+            z: self.z * other.z,
+        }
+    }
+
+    pub fn all_elements_sum(&self) -> f32 {
+        self.x + self.y + self.z
+    }
 }
 
 impl Display for V3 {

@@ -41,39 +41,6 @@ impl MeshCollider {
     pub fn get_transform<'a>(&'a self, object_manager: &'a ObjectManager) -> &'a Transform {
         self.get_object(object_manager).component().unwrap()
     }
-
-    pub fn check_collision(
-        &self,
-        other: &Object,
-        object_manager: &ObjectManager,
-    ) -> Option<Vec<HitInfo>> {
-        let self_mesh = self.get_mesh(object_manager);
-
-        for vertex in self_mesh.vertices.iter() {
-            let center_vertex_distance = (vertex.position - self_mesh.center).mag();
-            let dir = (vertex.position - self_mesh.center).norm();
-            let ray = ObjectIntersectionRay {
-                dir,
-                start: self_mesh.center,
-                max_distance: None,
-                object: other,
-            };
-
-            let hit = ray.cast(object_manager);
-
-            if hit
-                .iter()
-                .filter(|hit| hit.distance >= center_vertex_distance)
-                .count()
-                % 2
-                != 0
-            {
-                return Some(hit);
-            }
-        }
-
-        None
-    }
 }
 
 impl Raycastable for MeshCollider {

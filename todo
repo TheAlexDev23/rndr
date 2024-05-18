@@ -1,3 +1,7 @@
 - Add ability for multiple cameras, but only render main
 - Add object tags and search specific items with said tags. (e.g when searching for a rendering camera in mesh rendering search for the tag not for the component)
+
 - In mesh to mesh collision detection the vertex returned might not be the actual fist vertex intersection that happened within the time window since the last check. Look into possible solutions or algorithms to find a more accurate point.
+
+- In sphere raycasting, once sphere rendering is created, return the correct vertex color too. Unless the color thing would be deprecated.
+- In sphere raycasting return the correct rotation of the hit point.
