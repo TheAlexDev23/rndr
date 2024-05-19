@@ -124,21 +124,31 @@ impl Collidable for MeshCollider {
         object_manager: &ObjectManager,
     ) -> Option<Vertex> {
         let self_mesh = self.get_mesh(object_manager);
-        let self_mesh_center = self.get_mesh(object_manager).center;
-        let self_position = self.get_transform(object_manager).position;
+        let self_transform = self.get_transform(object_manager);
+        let self_mesh_center = self_mesh.calculate_center(self_transform);
         let other = other.get_object(object_manager);
+
+        println!("{}", self_mesh_center);
 
         self_mesh.vertices.par_iter().find_map_first(|vertex| {
             let center_vertex_distance = (vertex.position - self_mesh_center).mag();
             let dir = (vertex.position - self_mesh_center).norm();
             let ray = ObjectIntersectionRay {
                 dir,
-                start: self_mesh_center + self_position,
+                start: self_mesh_center,
                 max_distance: None,
                 object: other,
             };
 
             let intersects = ray.cast(object_manager);
+            println!(
+                "{} {}",
+                intersects.len(),
+                intersects
+                    .iter()
+                    .filter(|hit| hit.distance >= center_vertex_distance)
+                    .count()
+            );
             // It is verified that the 2 objects are intersecting eachother
             if intersects
                 .iter()

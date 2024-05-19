@@ -110,7 +110,6 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
                                 Vertex::new_with_color(V3::new(1.0, 0.0, 1.0), vert.color),
                                 Vertex::new_with_color(V3::new(1.0, 0.0, -1.0), vert.color),
                             ],
-                            center: V3::new(0.0, 0.0, 0.0),
                             triangles: vec![[0, 1, 2], [0, 2, 3]],
                             shader: Box::from(rndr_core::prelude::shader::DefaultShader),
                         };
