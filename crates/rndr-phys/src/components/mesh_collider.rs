@@ -138,39 +138,15 @@ impl Collidable for MeshCollider {
             let ray = ObjectIntersectionRay {
                 dir,
                 start: self_mesh_center,
-                max_distance: None,
+                max_distance: Some(center_vertex_distance),
                 object: other,
             };
 
             let intersects = ray.cast(object_manager);
-
-            // It is verified that the 2 objects are intersecting eachother
-            if intersects
-                .iter()
-                .filter(|hit| hit.distance >= center_vertex_distance)
-                .count()
-                % 2
-                != 0
-            {
-                // For now we return the first found vertex intersection. Which given that the tim step is not infinetely small
-                // this result is probably not the first actual vertex intersection that happened within the last collision check.
-                // In the future the first intersection vertex could be calculated. But I do not know how by now.
-                return Some(
-                    intersects
-                        .into_iter()
-                        .reduce(|a, b| {
-                            if b.distance > center_vertex_distance {
-                                a
-                            } else if a.distance < b.distance {
-                                a
-                            } else {
-                                b
-                            }
-                        })
-                        .unwrap()
-                        .vertex,
-                );
+            if intersects.len() != 0 {
+                return Some(intersects.first().unwrap().vertex);
             }
+
             None
         })
     }
