@@ -5,7 +5,6 @@ use rndr_core::events::{Event, Keycode};
 use rndr_core::prelude::{Instance, Object};
 
 use rndr_math::prelude::*;
-use rndr_math::vertex::Vertex;
 
 use rndr_phys::components::MeshCollider;
 
@@ -103,17 +102,7 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
                             rotation: V3::default(),
                         };
 
-                        let mesh = MeshRenderable {
-                            vertices: vec![
-                                Vertex::new_with_color(V3::new(-1.0, 0.0, -1.0), vert.color),
-                                Vertex::new_with_color(V3::new(-1.0, 0.0, 1.0), vert.color),
-                                Vertex::new_with_color(V3::new(1.0, 0.0, 1.0), vert.color),
-                                Vertex::new_with_color(V3::new(1.0, 0.0, -1.0), vert.color),
-                            ],
-                            triangles: vec![[0, 1, 2], [0, 2, 3]],
-                            shader: Box::from(rndr_core::prelude::shader::DefaultShader),
-                        };
-
+                        let mesh = MeshRenderable::plane();
                         let mut obj = Object::new();
                         obj.add_component(Box::new(transform));
                         obj.add_component(Box::new(mesh));

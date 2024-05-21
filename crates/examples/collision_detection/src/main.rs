@@ -20,18 +20,17 @@ fn main() {
 
     instance.configure_mesh_rendering_system();
 
-    let mut obj =
-        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh");
+    let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
 
-    obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, -5.0, 0.0);
+    obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, -0.5, 0.0);
+    obj.component_mut::<Transform>().unwrap().rotation = V3::new(45.0, 45.0, 0.0);
     obj.add_component(MeshCollider::default().into());
 
     instance.register_object(obj);
 
-    let mut obj =
-        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh");
+    let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
 
-    obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, 5.0, 0.0);
+    obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, 0.5, 0.0);
     obj.add_component(MeshCollider::default().into());
 
     instance.register_object(obj);

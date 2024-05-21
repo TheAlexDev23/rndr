@@ -2,6 +2,7 @@
 - Add object tags and search specific items with said tags. (e.g when searching for a rendering camera in mesh rendering search for the tag not for the component)
 
 - In mesh to mesh collision detection the vertex returned might not be the actual fist vertex intersection that happened within the time window since the last check. Look into possible solutions or algorithms to find a more accurate point.
+- In mesh to mesh collision, in order to prevent double checking of the same collision, one cannot just half the list and compare with the other half. It is important that all objects compare with others as some collision can only bre recognized by running the algorithm on one of the objects and not the other. Therefore if a performane increase is required, it is better to just have a hashtable and check wether that object2object combination has been checked yet.
 
 - In sphere raycasting, once sphere rendering is created, return the correct vertex color too. Unless the color thing would be deprecated.
 - In sphere raycasting return the correct rotation of the hit point.

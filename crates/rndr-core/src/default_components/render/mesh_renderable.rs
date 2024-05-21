@@ -4,37 +4,32 @@ use std::fmt::Debug;
 use rndr_math::prelude::{Vertex, V3};
 
 use crate::default_components::Transform;
-use crate::prelude::{Component, FragShader};
-use crate::render::shader;
+use crate::object::Component;
+use crate::render::{shader::DefaultShader, FragShader};
 
 #[derive(Debug)]
 pub struct MeshRenderable {
     pub vertices: Vec<Vertex>,
+    vertices_center: V3,
     pub triangles: Vec<[usize; 3]>,
     pub shader: Box<dyn FragShader>,
 }
 
 impl MeshRenderable {
-    pub fn calculate_center(&self, transform: &Transform) -> V3 {
-        let mut center_x = 0.0;
-        let mut center_y = 0.0;
-        let mut center_z = 0.0;
-
-        for mut vertex in self.vertices.iter().cloned() {
-            vertex.position.rotate(transform.rotation);
-            vertex.position += transform.position;
-            center_x += vertex.position.x;
-            center_y += vertex.position.y;
-            center_z += vertex.position.z;
-        }
-
-        let vertices_len = self.vertices.len() as f32;
-
-        center_x /= vertices_len;
-        center_y /= vertices_len;
-        center_z /= vertices_len;
-
-        V3::new(center_x, center_y, center_z)
+    pub fn plane() -> MeshRenderable {
+        let mut ret = MeshRenderable {
+            vertices: vec![
+                Vertex::new_with_color(V3::new(-1.0, 0.0, -1.0), [255; 3]),
+                Vertex::new_with_color(V3::new(-1.0, 0.0, 1.0), [255; 3]),
+                Vertex::new_with_color(V3::new(1.0, 0.0, 1.0), [255; 3]),
+                Vertex::new_with_color(V3::new(1.0, 0.0, -1.0), [255; 3]),
+            ],
+            vertices_center: V3::default(),
+            triangles: vec![[0, 1, 2], [0, 2, 3]],
+            shader: Box::from(DefaultShader),
+        };
+        ret.vertices_center = Self::find_vertex_average(&ret.vertices);
+        ret
     }
 
     pub fn from_stl(path: &str) -> Result<MeshRenderable, std::io::Error> {
@@ -43,7 +38,8 @@ impl MeshRenderable {
         let mut object = MeshRenderable {
             vertices: Vec::with_capacity(stl.triangles.len() * 3),
             triangles: Vec::with_capacity(stl.triangles.len()),
-            shader: Box::new(shader::DefaultShader),
+            vertices_center: V3::default(),
+            shader: Box::new(DefaultShader),
         };
         for triangle in stl.triangles {
             let len = object.vertices.len();
@@ -64,7 +60,35 @@ impl MeshRenderable {
             object.triangles.push([len, len + 1, len + 2]);
         }
 
+        object.vertices_center = Self::find_vertex_average(&object.vertices);
+
         Ok(object)
+    }
+
+    pub fn calculate_center(&self, transform: &Transform) -> V3 {
+        let mut center = self.vertices_center;
+        center += transform.position;
+        center
+    }
+
+    fn find_vertex_average(vertices: &[Vertex]) -> V3 {
+        let mut center_x = 0.0;
+        let mut center_y = 0.0;
+        let mut center_z = 0.0;
+
+        for vertex in vertices.iter().cloned() {
+            center_x += vertex.position.x;
+            center_y += vertex.position.y;
+            center_z += vertex.position.z;
+        }
+
+        let vertices_len = vertices.len() as f32;
+
+        center_x /= vertices_len;
+        center_y /= vertices_len;
+        center_z /= vertices_len;
+
+        V3::new(center_x, center_y, center_z)
     }
 }
 
