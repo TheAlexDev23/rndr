@@ -1,4 +1,5 @@
 use rndr_core::{default_components::Transform, object::ObjectManager};
+use rndr_math::vector::V3;
 
 use crate::components::rigidbody::Rigidbody;
 
@@ -82,7 +83,9 @@ impl PhysicsManager {
                 .unwrap();
 
             if !rb_1.lock_movement {
-                rb_1.velocity = rb_1.bounciness * (-1.0 * rb_1.velocity) + momentum_2 / rb_1_mass;
+                rb_1.velocity = rb_1.bounciness
+                    * (V3::find_reflection_vector(rb_1.velocity, collision.normal))
+                    + momentum_2 / rb_1_mass;
             }
 
             let rb_2 = object_manager
@@ -92,7 +95,9 @@ impl PhysicsManager {
                 .unwrap();
 
             if !rb_2.lock_movement {
-                rb_2.velocity = rb_2.bounciness * (-1.0 * rb_2.velocity) + momentum_1 / rb_2_mass;
+                rb_2.velocity = rb_2.bounciness
+                    * (V3::find_reflection_vector(rb_2.velocity, collision.normal))
+                    + momentum_1 / rb_2_mass;
             }
         }
     }

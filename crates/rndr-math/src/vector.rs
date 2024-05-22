@@ -21,12 +21,16 @@ impl V3 {
         *self - *other
     }
 
-    pub fn mag(&self) -> f32 {
-        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
+    pub fn normalize(&mut self) {
+        *self = self.norm()
     }
 
     pub fn norm(&self) -> V3 {
         *self / self.mag()
+    }
+
+    pub fn mag(&self) -> f32 {
+        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
     }
 
     pub fn cross(&self, other: V3) -> V3 {
@@ -37,8 +41,20 @@ impl V3 {
         )
     }
 
-    pub fn normalize(&mut self) {
-        *self = self.norm()
+    pub fn dot(&self, other: V3) -> f32 {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
+
+    pub fn hadamard_product(&self, other: V3) -> V3 {
+        V3 {
+            x: self.x * other.x,
+            y: self.y * other.y,
+            z: self.z * other.z,
+        }
+    }
+
+    pub fn all_elements_sum(&self) -> f32 {
+        self.x + self.y + self.z
     }
 
     /// Handle the V3 as a 3D point and rotate by `angle`, where angle is not a 3d point
@@ -86,16 +102,8 @@ impl V3 {
         v1.0 * v1.1 + v2.0 * v2.1 + v3.0 * v3.1
     }
 
-    pub fn hadamard_product(&self, other: V3) -> V3 {
-        V3 {
-            x: self.x * other.x,
-            y: self.y * other.y,
-            z: self.z * other.z,
-        }
-    }
-
-    pub fn all_elements_sum(&self) -> f32 {
-        self.x + self.y + self.z
+    pub fn find_reflection_vector(incident_vector: V3, surface_normal: V3) -> V3 {
+        incident_vector - 2.0 * (incident_vector.dot(surface_normal) * surface_normal)
     }
 }
 
