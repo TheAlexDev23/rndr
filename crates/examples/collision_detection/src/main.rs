@@ -3,10 +3,12 @@ use rndr_core::default_objects;
 use rndr_core::events::{Event, Keycode};
 use rndr_core::prelude::Instance;
 
+use rndr_phys::components::rigidbody::Rigidbody;
 use rndr_phys::components::MeshCollider;
 use rndr_phys::systems::collision_manager::CollisionManager;
 
 use rndr_math::prelude::V3;
+use rndr_phys::systems::physics_manager::PhysicsManager;
 
 const HEIGHT: u32 = 500;
 const WIDTH: u32 = 1000;
@@ -25,28 +27,40 @@ fn main() {
     obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, -0.5, 0.0);
     obj.component_mut::<Transform>().unwrap().rotation = V3::new(45.0, 45.0, 0.0);
     obj.add_component(MeshCollider::default().into());
+    obj.add_component(Rigidbody::default().into());
+    obj.component_mut::<Rigidbody>().unwrap().acceleration = V3::new(0.0, 0.0, -0.1);
 
     instance.register_object(obj);
 
     let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
 
     obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, 0.5, 0.0);
+    obj.add_component(Rigidbody::default().into());
     obj.add_component(MeshCollider::default().into());
 
     instance.register_object(obj);
 
     let collision_manager = CollisionManager;
+    let physics_manager = PhysicsManager;
 
     unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 
     let mut timer = std::time::Instant::now();
+    let mut last_frame = std::time::Instant::now();
+    let mut dt;
     let mut frames = 0;
+
     collision_manager.tick(&mut instance.object_manager);
     println!(
         "Collision check tick took: {}",
         (std::time::Instant::now() - timer).as_secs_f32()
     );
+
     loop {
+        dt = (std::time::Instant::now() - last_frame).as_secs_f32();
+        last_frame = std::time::Instant::now();
+
+        physics_manager.tick(&mut instance.object_manager, dt);
         handle_fps(&mut timer, &mut frames);
 
         let poll: Vec<_> = instance.event_pump.poll_iter().collect();
