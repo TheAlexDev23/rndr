@@ -10,6 +10,8 @@ pub struct Rigidbody {
     pub lock_movement: bool,
     pub affected_by_gravity: bool,
 
+    pub bounciness: f32,
+
     pub last_velocity: V3,
     pub velocity: V3,
     pub mass: f32,
@@ -47,6 +49,8 @@ impl Rigidbody {
     }
 
     pub fn tick(&mut self, dt: f32) -> (V3, V3) {
+        let ret_pos = self.velocity * dt;
+
         if self.lock_movement {
             self.last_velocity = V3::default();
             self.velocity = V3::default();
@@ -57,14 +61,7 @@ impl Rigidbody {
             self.velocity += V3::new(0.0, 0.0, unsafe { GRAVITY_ACCELERATION } * dt);
         }
 
-        println!(
-            "{}: {} {}",
-            self.owner.unwrap(),
-            self.calculate_acceleration(dt),
-            self.velocity
-        );
-
         self.last_velocity = self.velocity;
-        (self.velocity * dt, V3::default())
+        (ret_pos, V3::default())
     }
 }

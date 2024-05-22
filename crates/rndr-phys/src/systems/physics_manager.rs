@@ -37,10 +37,11 @@ impl PhysicsManager {
                 .component::<Rigidbody>()
                 .unwrap();
 
+            let momentum_1 = (1.0 - rb_1.bounciness) * rb_1.velocity * rb_1.mass;
+            let momentum_2 = (1.0 - rb_2.bounciness) * rb_2.velocity * rb_2.mass;
+
             let rb_1_mass = rb_1.mass;
             let rb_2_mass = rb_2.mass;
-
-            let system_impulse = (rb_1.velocity * rb_1_mass) + (rb_2.velocity * rb_2_mass);
 
             let rb_1 = object_manager
                 .get_object_mut(collision.obj_1)
@@ -48,7 +49,7 @@ impl PhysicsManager {
                 .component_mut::<Rigidbody>()
                 .unwrap();
 
-            rb_1.velocity -= system_impulse / rb_1_mass;
+            rb_1.velocity = -1.0 * rb_1.bounciness * rb_1.velocity + momentum_2 / rb_1_mass;
 
             let rb_2 = object_manager
                 .get_object_mut(collision.obj_2)
@@ -56,7 +57,7 @@ impl PhysicsManager {
                 .component_mut::<Rigidbody>()
                 .unwrap();
 
-            rb_2.velocity += system_impulse / rb_2_mass;
+            rb_2.velocity = -1.0 * rb_2.bounciness * rb_2.velocity + momentum_1 / rb_2_mass;
         }
     }
 }
