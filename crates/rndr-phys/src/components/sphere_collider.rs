@@ -79,6 +79,7 @@ impl Raycastable for SphereCollider {
                 vertex: Vertex {
                     position: start + dir * hit,
                     color: [255; 3],
+                    ..Default::default()
                 },
             })
         }

@@ -1,12 +1,20 @@
-use rndr_core::default_components::Transform;
 use rndr_core::object::ObjectManager;
 
+use rndr_math::prelude::V3;
+
 use crate::collision;
+
+pub struct CollisionInfo {
+    pub position: V3,
+    pub obj_1: u64,
+    pub obj_2: u64,
+}
 
 pub struct CollisionManager;
 
 impl CollisionManager {
-    pub fn tick(&self, object_manager: &mut ObjectManager) {
+    pub fn calculate(&self, object_manager: &mut ObjectManager) -> Vec<CollisionInfo> {
+        let mut calculated_hits = Vec::new();
         let mut all_hits = Vec::new();
         for object in object_manager.objects_iter() {
             let object_id = object.id();
@@ -16,7 +24,8 @@ impl CollisionManager {
             }
 
             for collision_comparator in object_manager.objects_iter() {
-                if collision_comparator.id() == object_id {
+                let collision_comparator_id = collision_comparator.id();
+                if collision_comparator_id == object_id {
                     continue;
                 }
                 let other = collision::get_dynamic_collidable(collision_comparator);
@@ -24,19 +33,26 @@ impl CollisionManager {
                     continue;
                 }
 
+                if calculated_hits.iter().any(|comb| {
+                    *comb == (object_id, collision_comparator_id)
+                        || *comb == (collision_comparator_id, object_id)
+                }) {
+                    continue;
+                }
+
                 if let Some(hit) = collidable
                     .unwrap()
                     .intersects_dynamic_collidable(other.unwrap(), object_manager)
                 {
-                    all_hits.push(hit);
+                    calculated_hits.push((object_id, collision_comparator_id));
+                    all_hits.push(CollisionInfo {
+                        position: hit.position,
+                        obj_1: object_id,
+                        obj_2: collision_comparator_id,
+                    });
                 }
             }
         }
-        for hit in all_hits {
-            let mut plane = rndr_core::default_objects::plane();
-            plane.component_mut::<Transform>().unwrap().position = hit.position;
-            println!("{}", hit.position);
-            object_manager.register_object(plane);
-        }
+        all_hits
     }
 }

@@ -47,20 +47,27 @@ impl MeshRenderable {
             object.vertices.push(Vertex {
                 color: [255, 0, 0],
                 position: triangle.v1.into(),
+                ..Default::default()
             });
             object.vertices.push(Vertex {
                 color: [0, 255, 0],
                 position: triangle.v2.into(),
+                ..Default::default()
             });
             object.vertices.push(Vertex {
                 color: [0, 0, 255],
                 position: triangle.v3.into(),
+                ..Default::default()
             });
 
             object.triangles.push([len, len + 1, len + 2]);
         }
 
         object.vertices_center = Self::find_vertex_average(&object.vertices);
+
+        for triangle in object.triangles.iter() {
+            Self::set_triangle_vertices_normal(triangle, &mut object.vertices);
+        }
 
         Ok(object)
     }
@@ -89,6 +96,18 @@ impl MeshRenderable {
         center_z /= vertices_len;
 
         V3::new(center_x, center_y, center_z)
+    }
+
+    fn set_triangle_vertices_normal(triangle: &[usize; 3], all_vertices: &mut [Vertex]) {
+        let triangle_side_1 =
+            all_vertices[triangle[0]].position - all_vertices[triangle[1]].position;
+        let triangle_side_2 =
+            all_vertices[triangle[1]].position - all_vertices[triangle[2]].position;
+        let triangle_normal = triangle_side_1.cross(triangle_side_2).norm();
+
+        for vertex in triangle {
+            all_vertices[*vertex].normal = triangle_normal;
+        }
     }
 }
 

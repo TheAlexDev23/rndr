@@ -24,19 +24,19 @@ fn main() {
 
     let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
 
-    obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, -0.5, 0.0);
-    obj.component_mut::<Transform>().unwrap().rotation = V3::new(45.0, 45.0, 0.0);
+    let tr = obj.component_mut::<Transform>().unwrap();
+    tr.position = V3::new(0.0, 0.0, 2.0);
     obj.add_component(MeshCollider::default().into());
-    obj.add_component(Rigidbody::default().into());
-    obj.component_mut::<Rigidbody>().unwrap().acceleration = V3::new(0.0, 0.0, -0.1);
+    obj.add_component(Rigidbody::new_with_gravity(2.0).into());
 
     instance.register_object(obj);
 
     let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
 
     obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, 0.5, 0.0);
-    obj.add_component(Rigidbody::default().into());
+    obj.add_component(Rigidbody::new(2.0).into());
     obj.add_component(MeshCollider::default().into());
+    obj.component_mut::<Rigidbody>().unwrap().lock_movement = true;
 
     instance.register_object(obj);
 
@@ -45,23 +45,20 @@ fn main() {
 
     unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 
-    let mut timer = std::time::Instant::now();
-    let mut last_frame = std::time::Instant::now();
-    let mut dt;
+    let mut fps_timer = std::time::Instant::now();
+    let mut last_physics_tick = std::time::Instant::now();
+    let mut dt = 0.0;
     let mut frames = 0;
 
-    collision_manager.tick(&mut instance.object_manager);
-    println!(
-        "Collision check tick took: {}",
-        (std::time::Instant::now() - timer).as_secs_f32()
-    );
-
     loop {
-        dt = (std::time::Instant::now() - last_frame).as_secs_f32();
-        last_frame = std::time::Instant::now();
-
         physics_manager.tick(&mut instance.object_manager, dt);
-        handle_fps(&mut timer, &mut frames);
+        let collisions = collision_manager.calculate(&mut instance.object_manager);
+        physics_manager.react_to_collisions(collisions, &mut instance.object_manager);
+
+        dt = (std::time::Instant::now() - last_physics_tick).as_secs_f32();
+        last_physics_tick = std::time::Instant::now();
+
+        handle_fps(&mut fps_timer, &mut frames);
 
         let poll: Vec<_> = instance.event_pump.poll_iter().collect();
 

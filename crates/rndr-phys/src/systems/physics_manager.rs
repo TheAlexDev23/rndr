@@ -2,6 +2,8 @@ use rndr_core::{default_components::Transform, object::ObjectManager};
 
 use crate::components::rigidbody::Rigidbody;
 
+use super::collision_manager::CollisionInfo;
+
 pub struct PhysicsManager;
 
 impl PhysicsManager {
@@ -15,6 +17,46 @@ impl PhysicsManager {
                 transform.position += pos_delta;
                 transform.rotation += rot_delta;
             }
+        }
+    }
+
+    pub fn react_to_collisions(
+        &self,
+        collisions: Vec<CollisionInfo>,
+        object_manager: &mut ObjectManager,
+    ) {
+        for collision in collisions {
+            let rb_1 = object_manager
+                .get_object(collision.obj_1)
+                .unwrap()
+                .component::<Rigidbody>()
+                .unwrap();
+            let rb_2 = object_manager
+                .get_object(collision.obj_2)
+                .unwrap()
+                .component::<Rigidbody>()
+                .unwrap();
+
+            let rb_1_mass = rb_1.mass;
+            let rb_2_mass = rb_2.mass;
+
+            let system_impulse = (rb_1.velocity * rb_1_mass) + (rb_2.velocity * rb_2_mass);
+
+            let rb_1 = object_manager
+                .get_object_mut(collision.obj_1)
+                .unwrap()
+                .component_mut::<Rigidbody>()
+                .unwrap();
+
+            rb_1.velocity -= system_impulse / rb_1_mass;
+
+            let rb_2 = object_manager
+                .get_object_mut(collision.obj_2)
+                .unwrap()
+                .component_mut::<Rigidbody>()
+                .unwrap();
+
+            rb_2.velocity += system_impulse / rb_2_mass;
         }
     }
 }

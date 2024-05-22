@@ -29,6 +29,14 @@ impl V3 {
         *self / self.mag()
     }
 
+    pub fn cross(&self, other: V3) -> V3 {
+        V3::new(
+            self.y * other.z - other.y * other.z,
+            -1.0 * (self.x * other.z - other.x * self.z),
+            self.x * other.y - other.x * self.y,
+        )
+    }
+
     pub fn normalize(&mut self) {
         *self = self.norm()
     }

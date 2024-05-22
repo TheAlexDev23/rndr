@@ -3,6 +3,7 @@ use crate::prelude::V3;
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Vertex {
     pub position: V3,
+    pub normal: V3,
     pub color: [u8; 3],
 }
 
@@ -11,11 +12,16 @@ impl Vertex {
         Vertex {
             position,
             color: [255, 255, 255],
+            ..Default::default()
         }
     }
 
     pub fn new_with_color(position: V3, color: [u8; 3]) -> Vertex {
-        Vertex { position, color }
+        Vertex {
+            position,
+            color,
+            ..Default::default()
+        }
     }
 
     pub fn interpolate(v1: (Vertex, f32), v2: (Vertex, f32), v3: (Vertex, f32)) -> Vertex {
@@ -27,6 +33,8 @@ impl Vertex {
         Vertex {
             color,
             position: V3::interpolate3(v1, v2, v3),
+            normal: V3::interpolate3(v1, v2, v3),
+            ..Default::default()
         }
     }
 
