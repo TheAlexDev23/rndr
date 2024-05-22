@@ -50,20 +50,12 @@ impl Rigidbody {
 
         if self.lock_movement {
             self.velocity = V3::default();
-            println!("Tick: vel: {}, returning 0 0 0", self.velocity);
             return (V3::default(), V3::default());
         }
 
         if self.affected_by_gravity {
             self.velocity += V3::new(0.0, 0.0, unsafe { GRAVITY_ACCELERATION } * dt);
         }
-
-        println!(
-            "Tick: vel: {}, veldt: {}, returning {}",
-            self.velocity,
-            self.velocity * dt,
-            ret_pos
-        );
 
         (ret_pos, V3::default())
     }

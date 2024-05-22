@@ -83,7 +83,6 @@ impl PhysicsManager {
 
             if !rb_1.lock_movement {
                 rb_1.velocity = rb_1.bounciness * (-1.0 * rb_1.velocity) + momentum_2 / rb_1_mass;
-                println!("Setting velocity of 1 to: {}", rb_1.velocity);
             }
 
             let rb_2 = object_manager

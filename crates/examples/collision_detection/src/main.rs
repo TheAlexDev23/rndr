@@ -26,7 +26,7 @@ fn main() {
     let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
 
     let tr = obj.component_mut::<Transform>().unwrap();
-    tr.position = V3::new(5.0, -2.0, 3.0);
+    tr.position = V3::new(2.0, -2.0, 3.0);
     obj.add_component(MeshCollider::default().into());
     obj.add_component(Rigidbody::new_with_gravity(2.0).into());
     obj.component_mut::<Rigidbody>().unwrap().velocity = V3::new(0.0, 2.0, -1.0);
@@ -36,7 +36,7 @@ fn main() {
 
     let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
 
-    obj.component_mut::<Transform>().unwrap().position = V3::new(5.0, 0.0, 0.0);
+    obj.component_mut::<Transform>().unwrap().position = V3::new(2.0, 0.0, 0.0);
     obj.add_component(Rigidbody::new(2.0).into());
     obj.add_component(MeshCollider::default().into());
     obj.component_mut::<Rigidbody>().unwrap().lock_movement = true;
