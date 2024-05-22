@@ -12,9 +12,10 @@ pub struct Rigidbody {
 
     pub bounciness: f32,
 
-    pub last_velocity: V3,
     pub velocity: V3,
     pub mass: f32,
+
+    pub last_position: V3,
 
     owner: Option<u64>,
 }
@@ -44,16 +45,12 @@ impl Rigidbody {
         }
     }
 
-    pub fn calculate_acceleration(&self, dt: f32) -> V3 {
-        (self.velocity - self.last_velocity) / dt
-    }
-
     pub fn tick(&mut self, dt: f32) -> (V3, V3) {
         let ret_pos = self.velocity * dt;
 
         if self.lock_movement {
-            self.last_velocity = V3::default();
             self.velocity = V3::default();
+            println!("Tick: vel: {}, returning 0 0 0", self.velocity);
             return (V3::default(), V3::default());
         }
 
@@ -61,7 +58,13 @@ impl Rigidbody {
             self.velocity += V3::new(0.0, 0.0, unsafe { GRAVITY_ACCELERATION } * dt);
         }
 
-        self.last_velocity = self.velocity;
+        println!(
+            "Tick: vel: {}, veldt: {}, returning {}",
+            self.velocity,
+            self.velocity * dt,
+            ret_pos
+        );
+
         (ret_pos, V3::default())
     }
 }

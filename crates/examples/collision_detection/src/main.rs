@@ -5,7 +5,6 @@ use rndr_core::prelude::Instance;
 
 use rndr_phys::components::rigidbody::Rigidbody;
 use rndr_phys::components::MeshCollider;
-use rndr_phys::systems::collision_manager::CollisionManager;
 
 use rndr_math::prelude::V3;
 use rndr_phys::systems::physics_manager::PhysicsManager;
@@ -16,6 +15,8 @@ const WIDTH: u32 = 1000;
 const BUFF_HEIGHT: u32 = 200;
 const BUFF_WIDTH: u32 = 400;
 
+const PHYSICS_DT: f32 = 0.02;
+
 fn main() {
     let mut instance =
         Instance::init(WIDTH, HEIGHT, BUFF_WIDTH, BUFF_HEIGHT).expect("Could not init rndr");
@@ -25,38 +26,36 @@ fn main() {
     let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
 
     let tr = obj.component_mut::<Transform>().unwrap();
-    tr.position = V3::new(0.0, 0.0, 2.0);
+    tr.position = V3::new(5.0, -2.0, 3.0);
     obj.add_component(MeshCollider::default().into());
     obj.add_component(Rigidbody::new_with_gravity(2.0).into());
+    obj.component_mut::<Rigidbody>().unwrap().velocity = V3::new(0.0, 2.0, -1.0);
+    obj.component_mut::<Rigidbody>().unwrap().bounciness = 0.2;
 
     instance.register_object(obj);
 
     let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
 
-    obj.component_mut::<Transform>().unwrap().position = V3::new(0.0, 0.5, 0.0);
+    obj.component_mut::<Transform>().unwrap().position = V3::new(5.0, 0.0, 0.0);
     obj.add_component(Rigidbody::new(2.0).into());
     obj.add_component(MeshCollider::default().into());
     obj.component_mut::<Rigidbody>().unwrap().lock_movement = true;
 
     instance.register_object(obj);
 
-    let collision_manager = CollisionManager;
-    let physics_manager = PhysicsManager;
+    let physics_manager = PhysicsManager::default();
 
     unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 
     let mut fps_timer = std::time::Instant::now();
     let mut last_physics_tick = std::time::Instant::now();
-    let mut dt = 0.0;
     let mut frames = 0;
 
     loop {
-        physics_manager.tick(&mut instance.object_manager, dt);
-        let collisions = collision_manager.calculate(&mut instance.object_manager);
-        physics_manager.react_to_collisions(collisions, &mut instance.object_manager);
-
-        dt = (std::time::Instant::now() - last_physics_tick).as_secs_f32();
-        last_physics_tick = std::time::Instant::now();
+        if (std::time::Instant::now() - last_physics_tick).as_secs_f32() >= PHYSICS_DT {
+            physics_manager.tick(&mut instance.object_manager, PHYSICS_DT);
+            last_physics_tick = std::time::Instant::now();
+        }
 
         handle_fps(&mut fps_timer, &mut frames);
 

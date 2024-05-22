@@ -10,7 +10,8 @@ pub struct CollisionInfo {
     pub obj_2: u64,
 }
 
-pub struct CollisionManager;
+#[derive(Default)]
+pub(crate) struct CollisionManager;
 
 impl CollisionManager {
     pub fn calculate(&self, object_manager: &mut ObjectManager) -> Vec<CollisionInfo> {

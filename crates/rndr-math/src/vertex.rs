@@ -26,6 +26,10 @@ impl Vertex {
 
     pub fn interpolate(v1: (Vertex, f32), v2: (Vertex, f32), v3: (Vertex, f32)) -> Vertex {
         let color = Self::interpolate_color(v1, v2, v3);
+        let n1 = (v1.0.normal, v1.1);
+        let n2 = (v2.0.normal, v2.1);
+        let n3 = (v3.0.normal, v3.1);
+
         let v1 = (v1.0.position, v1.1);
         let v2 = (v2.0.position, v2.1);
         let v3 = (v3.0.position, v3.1);
@@ -33,7 +37,7 @@ impl Vertex {
         Vertex {
             color,
             position: V3::interpolate3(v1, v2, v3),
-            normal: V3::interpolate3(v1, v2, v3),
+            normal: V3::interpolate3(n1, n2, n3),
             ..Default::default()
         }
     }
