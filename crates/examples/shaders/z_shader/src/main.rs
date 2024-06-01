@@ -28,7 +28,7 @@ fn main() {
 
     instance.configure_mesh_rendering_system();
 
-    let mut mesh_obj = default_objects::mesh_from_file("../../../../Utah_teapot_(solid).stl")
+    let mut mesh_obj = default_objects::mesh_from_file("../../Utah_teapot_(solid).stl")
         .expect("Could not load mesh");
 
     mesh_obj.component_mut::<MeshRenderable>().shader = Box::new(ZShader);

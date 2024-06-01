@@ -22,8 +22,8 @@ fn main() {
 
     unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 
-    let mut teapot = default_objects::mesh_from_file("../../../Utah_teapot_(solid).stl")
-        .expect("Could not load mesh");
+    let mut teapot =
+        default_objects::mesh_from_file("../Utah_teapot_(solid).stl").expect("Could not load mesh");
     teapot.add_component(MeshCollider::default().into());
     instance.register_object(teapot);
 

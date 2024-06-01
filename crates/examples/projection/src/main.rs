@@ -16,8 +16,7 @@ fn main() {
     instance.configure_mesh_rendering_system();
 
     instance.register_object(
-        default_objects::mesh_from_file("../../../Utah_teapot_(solid).stl")
-            .expect("Could not load mesh"),
+        default_objects::mesh_from_file("../Utah_teapot_(solid).stl").expect("Could not load mesh"),
     );
     unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 

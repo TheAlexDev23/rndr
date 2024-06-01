@@ -23,7 +23,7 @@ fn main() {
 
     instance.configure_mesh_rendering_system();
 
-    let mut obj = default_objects::mesh_from_file("../../../Cube.obj").expect("Could not load mesh");
+    let mut obj = default_objects::mesh_from_file("../Cube.obj").expect("Could not load mesh");
 
     let tr = obj.component_mut::<Transform>();
     tr.position = V3::new(3.2, -2.0, 3.0);
@@ -34,7 +34,7 @@ fn main() {
 
     instance.register_object(obj);
 
-    let mut obj = default_objects::mesh_from_file("../../../Cube.obj").expect("Could not load mesh");
+    let mut obj = default_objects::mesh_from_file("../Cube.obj").expect("Could not load mesh");
     obj.component_mut::<Transform>().position = V3::new(3.0, 0.0, 0.0);
     obj.add_component(Rigidbody::new(1.0).into());
     obj.add_component(MeshCollider::default().into());
