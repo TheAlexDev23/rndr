@@ -23,23 +23,22 @@ fn main() {
 
     instance.configure_mesh_rendering_system();
 
-    let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
+    let mut obj = default_objects::mesh_from_file("../../../Cube.obj").expect("Could not load mesh");
 
-    let tr = obj.component_mut::<Transform>().unwrap();
-    tr.position = V3::new(3.0, -2.0, 3.0);
+    let tr = obj.component_mut::<Transform>();
+    tr.position = V3::new(3.2, -2.0, 3.0);
+    tr.rotation = V3::new(30.0, -20.0, 30.0);
     obj.add_component(MeshCollider::default().into());
-    obj.add_component(Rigidbody::new_with_gravity(2.0).into());
-    obj.component_mut::<Rigidbody>().unwrap().velocity = V3::new(0.0, 2.0, -1.0);
-    obj.component_mut::<Rigidbody>().unwrap().bounciness = 0.6;
+    obj.add_component(Rigidbody::new_with_gravity(10.0).into());
+    obj.component_mut::<Rigidbody>().linear_velocity = V3::new(0.0, 2.0, -1.0);
 
     instance.register_object(obj);
 
-    let mut obj = default_objects::stl_mesh("../../../Cube.stl").expect("Could not load mesh");
-
-    obj.component_mut::<Transform>().unwrap().position = V3::new(3.0, 0.0, 0.0);
-    obj.add_component(Rigidbody::new(2.0).into());
+    let mut obj = default_objects::mesh_from_file("../../../Cube.obj").expect("Could not load mesh");
+    obj.component_mut::<Transform>().position = V3::new(3.0, 0.0, 0.0);
+    obj.add_component(Rigidbody::new(1.0).into());
     obj.add_component(MeshCollider::default().into());
-    obj.component_mut::<Rigidbody>().unwrap().lock_movement = true;
+    obj.component_mut::<Rigidbody>().lock_movement = true;
 
     instance.register_object(obj);
 
@@ -86,9 +85,9 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
     const INCREASE_ROTATION_KEY: f32 = 10.0;
     const INCREASE_POSITION: f32 = 0.2;
 
-    let cam_obj = instance.get_object_mut(unsafe { CAMERA_ID }).unwrap();
+    let cam_obj = instance.get_object_mut(unsafe { CAMERA_ID });
 
-    let cam_transform = cam_obj.component_mut::<Transform>().unwrap();
+    let cam_transform = cam_obj.component_mut::<Transform>();
 
     match event {
         Event::Quit { timestamp: _ } => {

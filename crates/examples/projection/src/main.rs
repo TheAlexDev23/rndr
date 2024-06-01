@@ -16,7 +16,8 @@ fn main() {
     instance.configure_mesh_rendering_system();
 
     instance.register_object(
-        default_objects::stl_mesh("../../../Utah_teapot_(solid).stl").expect("Could not load mesh"),
+        default_objects::mesh_from_file("../../../Utah_teapot_(solid).stl")
+            .expect("Could not load mesh"),
     );
     unsafe { CAMERA_ID = instance.register_object(default_objects::camera(true)) };
 
@@ -52,9 +53,9 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
     const INCREASE_ROTATION_KEY: f32 = 10.0;
     const INCREASE_POSITION: f32 = 0.2;
 
-    let cam_obj = instance.get_object_mut(unsafe { CAMERA_ID }).unwrap();
+    let cam_obj = instance.get_object_mut(unsafe { CAMERA_ID });
 
-    let cam_transform = cam_obj.component_mut::<Transform>().unwrap();
+    let cam_transform = cam_obj.component_mut::<Transform>();
 
     match event {
         Event::Quit { timestamp: _ } => {

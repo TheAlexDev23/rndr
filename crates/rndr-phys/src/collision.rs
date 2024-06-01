@@ -34,20 +34,20 @@ pub enum DynamicCollidable<'a> {
 }
 
 pub fn get_trait_collidable(object: &Object) -> Option<&dyn Collidable> {
-    if let Some(r) = object.component::<MeshCollider>() {
+    if let Some(r) = object.try_component::<MeshCollider>() {
         return Some(r);
     }
-    if let Some(r) = object.component::<SphereCollider>() {
+    if let Some(r) = object.try_component::<SphereCollider>() {
         return Some(r);
     }
     None
 }
 
 pub fn get_dynamic_collidable(object: &Object) -> Option<DynamicCollidable> {
-    if let Some(r) = object.component::<MeshCollider>() {
+    if let Some(r) = object.try_component::<MeshCollider>() {
         return Some(DynamicCollidable::Mesh(r));
     }
-    if let Some(r) = object.component::<SphereCollider>() {
+    if let Some(r) = object.try_component::<SphereCollider>() {
         return Some(DynamicCollidable::Sphere(r));
     }
     None

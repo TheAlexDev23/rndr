@@ -30,8 +30,8 @@ impl MeshRendererSystem {
 
         let camera = Arc::from(camera);
 
-        let object_transform = object.component::<Transform>().unwrap();
-        let object_mesh = object.component::<MeshRenderable>().unwrap();
+        let object_transform = object.component::<Transform>();
+        let object_mesh = object.component::<MeshRenderable>();
 
         let pixel_changes: Vec<_> = object_mesh
             .triangles

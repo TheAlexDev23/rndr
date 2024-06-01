@@ -31,15 +31,13 @@ impl Component for MeshCollider {
 
 impl MeshCollider {
     pub fn get_object<'a>(&'a self, object_manager: &'a ObjectManager) -> &'a Object {
-        object_manager
-            .get_object(self.object.expect("Owner object not set"))
-            .unwrap()
+        object_manager.get_object(self.object.expect("Owner object not set"))
     }
     pub fn get_mesh<'a>(&'a self, object_manager: &'a ObjectManager) -> &'a MeshRenderable {
-        self.get_object(object_manager).component().unwrap()
+        self.get_object(object_manager).component()
     }
     pub fn get_transform<'a>(&'a self, object_manager: &'a ObjectManager) -> &'a Transform {
-        self.get_object(object_manager).component().unwrap()
+        self.get_object(object_manager).component()
     }
 }
 
@@ -55,15 +53,11 @@ impl Raycastable for MeshCollider {
 
         let mesh = object_manager
             .get_object(self.object.unwrap())
-            .expect("No owner object defined for this component")
-            .component::<MeshRenderable>()
-            .expect("Referenced object does not have a mesh");
+            .component::<MeshRenderable>();
 
         let transform = object_manager
             .get_object(self.object.unwrap())
-            .unwrap()
-            .component::<Transform>()
-            .expect("Referenced object does not have a transform");
+            .component::<Transform>();
 
         for triangle in &mesh.triangles {
             let mut a_v = mesh.vertices[triangle[0]];
@@ -73,6 +67,10 @@ impl Raycastable for MeshCollider {
             a_v.position = a_v.position.rotate(transform.rotation);
             b_v.position = b_v.position.rotate(transform.rotation);
             c_v.position = c_v.position.rotate(transform.rotation);
+
+            a_v.normal = a_v.normal.rotate(transform.rotation);
+            b_v.normal = b_v.normal.rotate(transform.rotation);
+            c_v.normal = c_v.normal.rotate(transform.rotation);
 
             a_v.position += transform.position;
             b_v.position += transform.position;
@@ -144,7 +142,9 @@ impl Collidable for MeshCollider {
 
             let intersects = ray.cast(object_manager);
             if intersects.len() != 0 {
-                return Some(intersects.first().unwrap().vertex);
+                let mut v = intersects.first().unwrap().vertex;
+                v.normal *= -1.0;
+                return Some(v);
             }
 
             None

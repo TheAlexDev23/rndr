@@ -22,10 +22,10 @@ pub trait Raycastable {
 }
 
 fn get_raycastable(object: &Object) -> Option<&dyn Raycastable> {
-    if let Some(r) = object.component::<MeshCollider>() {
+    if let Some(r) = object.try_component::<MeshCollider>() {
         return Some(r);
     }
-    if let Some(r) = object.component::<SphereCollider>() {
+    if let Some(r) = object.try_component::<SphereCollider>() {
         return Some(r);
     }
     None

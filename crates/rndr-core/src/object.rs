@@ -27,13 +27,29 @@ impl Object {
         self.components.contains_key(&TypeId::of::<T>())
     }
 
-    pub fn component<T: Component>(&self) -> Option<&T> {
+    pub fn component<T: Component>(&self) -> &T {
+        self.components
+            .get(&TypeId::of::<T>())
+            .map(|c| c.as_ref())
+            .unwrap()
+            .downcast_ref::<T>()
+            .unwrap()
+    }
+    pub fn component_mut<T: Component>(&mut self) -> &mut T {
+        self.components
+            .get_mut(&TypeId::of::<T>())
+            .unwrap()
+            .downcast_mut::<T>()
+            .unwrap()
+    }
+
+    pub fn try_component<T: Component>(&self) -> Option<&T> {
         self.components
             .get(&TypeId::of::<T>())
             .map(|c| c.as_ref())?
             .downcast_ref::<T>()
     }
-    pub fn component_mut<T: Component>(&mut self) -> Option<&mut T> {
+    pub fn try_component_mut<T: Component>(&mut self) -> Option<&mut T> {
         self.components
             .get_mut(&TypeId::of::<T>())?
             .downcast_mut::<T>()
@@ -76,9 +92,9 @@ impl ObjectManager {
         let idx = self.obj_index;
         self.objects.insert(idx, object);
 
-        let object = self.get_object_mut(idx).unwrap();
+        let object = self.get_object_mut(idx);
         object.receive_id(idx);
-        for cmp in self.get_object_mut(idx).unwrap().components.values_mut() {
+        for cmp in self.get_object_mut(idx).components.values_mut() {
             cmp.on_added(idx)
         }
 
@@ -86,11 +102,19 @@ impl ObjectManager {
         idx
     }
 
-    pub fn get_object(&self, index: u64) -> Option<&Object> {
+    pub fn get_object(&self, index: u64) -> &Object {
+        self.objects.get(&index).unwrap()
+    }
+
+    pub fn get_object_mut(&mut self, index: u64) -> &mut Object {
+        self.objects.get_mut(&index).unwrap()
+    }
+
+    pub fn try_get_object(&self, index: u64) -> Option<&Object> {
         self.objects.get(&index)
     }
 
-    pub fn get_object_mut(&mut self, index: u64) -> Option<&mut Object> {
+    pub fn try_get_object_mut(&mut self, index: u64) -> Option<&mut Object> {
         self.objects.get_mut(&index)
     }
 

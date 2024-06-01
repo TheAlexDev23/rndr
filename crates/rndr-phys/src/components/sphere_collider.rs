@@ -44,9 +44,7 @@ impl Raycastable for SphereCollider {
     ) -> Vec<HitInfo> {
         let self_position = object_manager
             .get_object(self.owner.expect("Owner not set"))
-            .unwrap()
             .component::<Transform>()
-            .unwrap()
             .position;
 
         let n = start - self_position;

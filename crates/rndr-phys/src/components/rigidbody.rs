@@ -8,14 +8,13 @@ static mut GRAVITY_ACCELERATION: f32 = -5.0;
 #[derive(Debug, Default)]
 pub struct Rigidbody {
     pub lock_movement: bool,
+    pub lock_rotation: bool,
     pub affected_by_gravity: bool,
 
-    pub bounciness: f32,
-
-    pub velocity: V3,
     pub mass: f32,
 
-    pub last_position: V3,
+    pub linear_velocity: V3,
+    pub angular_velocity: V3,
 
     owner: Option<u64>,
 }
@@ -46,17 +45,20 @@ impl Rigidbody {
     }
 
     pub fn tick(&mut self, dt: f32) -> (V3, V3) {
-        let ret_pos = self.velocity * dt;
+        let start_lv = self.linear_velocity;
+        let start_av = self.angular_velocity;
+        if self.affected_by_gravity {
+            self.linear_velocity += V3::new(0.0, 0.0, unsafe { GRAVITY_ACCELERATION } * dt);
+        }
 
         if self.lock_movement {
-            self.velocity = V3::default();
-            return (V3::default(), V3::default());
+            self.linear_velocity = V3::default();
         }
 
-        if self.affected_by_gravity {
-            self.velocity += V3::new(0.0, 0.0, unsafe { GRAVITY_ACCELERATION } * dt);
+        if self.lock_rotation {
+            self.angular_velocity = V3::default();
         }
 
-        (ret_pos, V3::default())
+        (start_lv * dt, start_av * dt)
     }
 }

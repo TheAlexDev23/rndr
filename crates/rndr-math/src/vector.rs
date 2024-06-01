@@ -17,6 +17,10 @@ impl V3 {
         V3 { x, y, z }
     }
 
+    pub fn average(&self, other: V3) -> V3 {
+        (*self + other) / 2.0
+    }
+
     pub fn relative_to(&self, other: &V3) -> V3 {
         *self - *other
     }
@@ -26,7 +30,11 @@ impl V3 {
     }
 
     pub fn norm(&self) -> V3 {
-        *self / self.mag()
+        if self.mag() == 0.0 {
+            V3::default()
+        } else {
+            *self / self.mag()
+        }
     }
 
     pub fn mag(&self) -> f32 {
@@ -200,5 +208,16 @@ impl DivAssign<f32> for V3 {
         self.x /= rhs;
         self.y /= rhs;
         self.z /= rhs;
+    }
+}
+
+impl PartialEq for V3 {
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
+    fn eq(&self, other: &Self) -> bool {
+        (self.x - other.x).abs() < f32::EPSILON
+            && (self.y - other.y).abs() < f32::EPSILON
+            && (self.z - other.z).abs() < f32::EPSILON
     }
 }

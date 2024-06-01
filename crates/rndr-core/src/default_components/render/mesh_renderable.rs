@@ -2,6 +2,8 @@ use std::any::TypeId;
 use std::fmt::Debug;
 
 use rndr_math::prelude::{Vertex, V3};
+use russimp::scene::{PostProcess, Scene};
+use russimp::RussimpError;
 
 use crate::default_components::Transform;
 use crate::object::Component;
@@ -17,12 +19,28 @@ pub struct MeshRenderable {
 
 impl MeshRenderable {
     pub fn plane() -> MeshRenderable {
+        let n = V3::new(0.0, 1.0, 0.0);
         let mut ret = MeshRenderable {
             vertices: vec![
-                Vertex::new_with_color(V3::new(-1.0, 0.0, -1.0), [255; 3]),
-                Vertex::new_with_color(V3::new(-1.0, 0.0, 1.0), [255; 3]),
-                Vertex::new_with_color(V3::new(1.0, 0.0, 1.0), [255; 3]),
-                Vertex::new_with_color(V3::new(1.0, 0.0, -1.0), [255; 3]),
+                Vertex::new(V3::new(-1.0, 0.0, -1.0), [255; 3], n),
+                Vertex::new(V3::new(-1.0, 0.0, 1.0), [255; 3], n),
+                Vertex::new(V3::new(1.0, 0.0, 1.0), [255; 3], n),
+                Vertex::new(V3::new(1.0, 0.0, -1.0), [255; 3], n),
+            ],
+            vertices_center: V3::default(),
+            triangles: vec![[0, 1, 2], [0, 2, 3]],
+            shader: Box::from(DefaultShader),
+        };
+        ret.vertices_center = Self::find_vertex_average(&ret.vertices);
+        ret
+    }
+    pub fn small_plane() -> MeshRenderable {
+        let mut ret = MeshRenderable {
+            vertices: vec![
+                Vertex::new_with_color(V3::new(-0.2, 0.0, -0.2), [255; 3]),
+                Vertex::new_with_color(V3::new(-0.2, 0.0, 0.2), [255; 3]),
+                Vertex::new_with_color(V3::new(0.2, 0.0, 0.2), [255; 3]),
+                Vertex::new_with_color(V3::new(0.2, 0.0, -0.2), [255; 3]),
             ],
             vertices_center: V3::default(),
             triangles: vec![[0, 1, 2], [0, 2, 3]],
@@ -32,42 +50,58 @@ impl MeshRenderable {
         ret
     }
 
-    pub fn from_stl(path: &str) -> Result<MeshRenderable, std::io::Error> {
-        let mut file = std::fs::File::open(path)?;
-        let stl = stl::read_stl(&mut file)?;
+    pub fn from_file(path: &str) -> Result<MeshRenderable, RussimpError> {
+        let mesh = &Scene::from_file(
+            path,
+            vec![
+                PostProcess::JoinIdenticalVertices,
+                PostProcess::GenerateNormals,
+                PostProcess::Triangulate,
+            ],
+        )?
+        .meshes[0];
+
         let mut object = MeshRenderable {
-            vertices: Vec::with_capacity(stl.triangles.len() * 3),
-            triangles: Vec::with_capacity(stl.triangles.len()),
+            vertices: Vec::default(),
+            triangles: Vec::default(),
             vertices_center: V3::default(),
             shader: Box::new(DefaultShader),
         };
-        for triangle in stl.triangles {
-            let len = object.vertices.len();
 
-            object.vertices.push(Vertex {
-                color: [255, 0, 0],
-                position: triangle.v1.into(),
-                ..Default::default()
-            });
-            object.vertices.push(Vertex {
-                color: [0, 255, 0],
-                position: triangle.v2.into(),
-                ..Default::default()
-            });
-            object.vertices.push(Vertex {
-                color: [0, 0, 255],
-                position: triangle.v3.into(),
-                ..Default::default()
-            });
+        // In meshes that reuse vertices for multiple faces we need to check if some vertices haven't been pushed in yet
+        let mut pushed_vertices = Vec::new();
 
-            object.triangles.push([len, len + 1, len + 2]);
+        for face in mesh.faces.iter() {
+            object
+                .triangles
+                .push([face.0[0] as usize, face.0[1] as usize, face.0[2] as usize]);
+
+            for i in 0..face.0.len() {
+                let idx = face.0[i] as usize;
+                if pushed_vertices.iter().find(|v| **v == idx).is_some() {
+                    continue;
+                }
+                pushed_vertices.push(idx);
+                let p = mesh.vertices[idx];
+                let p = V3::new(p.x, p.y, p.z);
+                let n = mesh.normals[idx];
+                let n = V3::new(n.x, n.y, n.z);
+                let v = Vertex {
+                    position: V3::new(p.x, p.y, p.z),
+                    normal: V3::new(n.x, n.y, n.z),
+                    color: if i == 0 {
+                        [255, 0, 0]
+                    } else if i == 1 {
+                        [0, 255, 0]
+                    } else {
+                        [0, 0, 255]
+                    },
+                };
+                object.vertices.push(v);
+            }
         }
 
         object.vertices_center = Self::find_vertex_average(&object.vertices);
-
-        for triangle in object.triangles.iter() {
-            Self::set_triangle_vertices_normal(triangle, &mut object.vertices);
-        }
 
         Ok(object)
     }
@@ -96,18 +130,6 @@ impl MeshRenderable {
         center_z /= vertices_len;
 
         V3::new(center_x, center_y, center_z)
-    }
-
-    fn set_triangle_vertices_normal(triangle: &[usize; 3], all_vertices: &mut [Vertex]) {
-        let triangle_side_1 =
-            all_vertices[triangle[0]].position - all_vertices[triangle[1]].position;
-        let triangle_side_2 =
-            all_vertices[triangle[1]].position - all_vertices[triangle[2]].position;
-        let triangle_normal = triangle_side_1.cross(triangle_side_2).norm();
-
-        for vertex in triangle {
-            all_vertices[*vertex].normal = triangle_normal;
-        }
     }
 }
 

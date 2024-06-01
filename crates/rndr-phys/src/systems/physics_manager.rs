@@ -1,5 +1,7 @@
-use rndr_core::{default_components::Transform, object::ObjectManager};
-use rndr_math::vector::V3;
+use rndr_core::{
+    default_components::{render::MeshRenderable, Transform},
+    object::ObjectManager,
+};
 
 use crate::components::rigidbody::Rigidbody;
 
@@ -17,87 +19,72 @@ impl PhysicsManager {
                 continue;
             }
 
-            let rb = object.component_mut::<Rigidbody>().unwrap();
+            let rb = object.component_mut::<Rigidbody>();
             let (pos_delta, rot_delta) = rb.tick(dt);
 
-            let transform = object
-                .component_mut::<Transform>()
-                .expect("Object with rigidbody does not have transform");
-
-            let last_position = transform.position;
+            let transform = object.component_mut::<Transform>();
 
             transform.position += pos_delta;
             transform.rotation += rot_delta;
-
-            object.component_mut::<Rigidbody>().unwrap().last_position = last_position;
         }
 
         let collisions = self.collision_manager.calculate(object_manager);
 
-        self.react_to_collisions(collisions, object_manager);
+        self.react_to_collisions(collisions, object_manager, dt);
     }
 
     fn react_to_collisions(
         &self,
         collisions: Vec<CollisionInfo>,
         object_manager: &mut ObjectManager,
+        dt: f32,
     ) {
         for collision in collisions {
-            let rb_1 = object_manager
-                .get_object(collision.obj_1)
-                .unwrap()
-                .component::<Rigidbody>()
-                .unwrap();
-            let rb_2 = object_manager
-                .get_object(collision.obj_2)
-                .unwrap()
-                .component::<Rigidbody>()
-                .unwrap();
+            let obj1 = object_manager.get_object(collision.obj_1);
+            let obj2 = object_manager.get_object(collision.obj_2);
 
-            let momentum_1 = (1.0 - rb_1.bounciness) * rb_1.velocity * rb_1.mass;
-            let momentum_2 = (1.0 - rb_2.bounciness) * rb_2.velocity * rb_2.mass;
+            let rb1 = obj1.component::<Rigidbody>();
+            let rb2 = obj2.component::<Rigidbody>();
 
-            let rb_1_mass = rb_1.mass;
-            let rb_2_mass = rb_2.mass;
+            let mesh1 = obj1.component::<MeshRenderable>();
+            let mesh2 = obj2.component::<MeshRenderable>();
 
-            let pos_1 = rb_1.last_position;
-            let pos_2 = rb_2.last_position;
+            let tr1 = obj1.component::<Transform>();
+            let tr2 = obj2.component::<Transform>();
 
-            object_manager
+            let collision_offset1 = collision.position - mesh1.calculate_center(tr1);
+            let collision_offset2 = collision.position - mesh2.calculate_center(tr2);
+
+            let f1 = rb1.linear_velocity / dt * rb1.mass
+                - rb1.angular_velocity.cross(collision_offset1) / dt * rb1.mass;
+            let f2 = rb2.linear_velocity / dt * rb2.mass
+                - rb2.angular_velocity.cross(collision_offset2) / dt * rb2.mass;
+
+            let f1 = f1.dot(collision.normal) * collision.normal;
+            let f2 = f2.dot(collision.normal) * collision.normal;
+
+            let rb1 = object_manager
                 .get_object_mut(collision.obj_1)
-                .unwrap()
-                .component_mut::<Transform>()
-                .unwrap()
-                .position = pos_1;
-            object_manager
-                .get_object_mut(collision.obj_2)
-                .unwrap()
-                .component_mut::<Transform>()
-                .unwrap()
-                .position = pos_2;
+                .component_mut::<Rigidbody>();
 
-            let rb_1 = object_manager
-                .get_object_mut(collision.obj_1)
-                .unwrap()
-                .component_mut::<Rigidbody>()
-                .unwrap();
-
-            if !rb_1.lock_movement {
-                rb_1.velocity = rb_1.bounciness
-                    * (V3::find_reflection_vector(rb_1.velocity, collision.normal))
-                    + momentum_2 / rb_1_mass;
+            if !rb1.lock_movement {
+                rb1.linear_velocity += -1.0 * f1 / rb1.mass * dt + f2 / rb1.mass * dt;
+            }
+            if !rb1.lock_rotation {
+                rb1.angular_velocity += -1.0 * f1.cross(collision_offset1) / rb1.mass * dt
+                    + f2.cross(collision_offset1) / rb1.mass * dt;
             }
 
-            let rb_2 = object_manager
+            let rb2 = object_manager
                 .get_object_mut(collision.obj_2)
-                .unwrap()
-                .component_mut::<Rigidbody>()
-                .unwrap();
+                .component_mut::<Rigidbody>();
 
-            if !rb_2.lock_movement {
-                rb_2.velocity = rb_2.bounciness
-                    * (V3::find_reflection_vector(rb_2.velocity, collision.normal))
-                    + momentum_1 / rb_2_mass;
+            if !rb2.lock_movement {
+                rb2.linear_velocity += -1.0 * f2 / rb2.mass * dt + f1 / rb2.mass * dt;
+            }
+            if !rb2.lock_rotation {
+                rb2.angular_velocity += -1.0 * f2.cross(collision_offset2) / rb2.mass * dt
+                    + f2.cross(collision_offset2) / rb2.mass * dt;
             }
         }
     }

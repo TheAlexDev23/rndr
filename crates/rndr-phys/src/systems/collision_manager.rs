@@ -6,6 +6,7 @@ use crate::collision;
 
 pub struct CollisionInfo {
     pub position: V3,
+    /// Collision normal. Exclusively from object 1 to object 2.
     pub normal: V3,
     pub obj_1: u64,
     pub obj_2: u64,

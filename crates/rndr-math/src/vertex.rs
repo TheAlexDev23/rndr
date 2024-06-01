@@ -8,7 +8,15 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    pub fn new(position: V3) -> Vertex {
+    pub fn new(position: V3, color: [u8; 3], normal: V3) -> Vertex {
+        Vertex {
+            position,
+            color,
+            normal,
+        }
+    }
+
+    pub fn new_with_position(position: V3) -> Vertex {
         Vertex {
             position,
             color: [255, 255, 255],

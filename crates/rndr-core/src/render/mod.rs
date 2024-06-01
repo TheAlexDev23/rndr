@@ -46,15 +46,15 @@ impl RenderContext {
 
             let camera_object = object_manager
                 .objects_iter()
-                .find(|obj| obj.component::<Camera>().is_some());
+                .find(|obj| obj.has_component::<Camera>());
 
             if camera_object.is_none() {
                 return Err(RenderError::NoCamera);
             }
 
-            let camera = camera_object.unwrap().component::<Camera>().unwrap();
+            let camera = camera_object.unwrap().component::<Camera>();
 
-            let camera_transform = camera_object.unwrap().component::<Transform>().unwrap();
+            let camera_transform = camera_object.unwrap().component::<Transform>();
 
             for object in object_manager.objects_iter() {
                 if !object.has_component::<MeshRenderable>() {

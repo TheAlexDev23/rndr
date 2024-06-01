@@ -120,10 +120,16 @@ impl Instance {
     pub fn register_object(&mut self, object: Object) -> u64 {
         self.object_manager.register_object(object)
     }
-    pub fn get_object(&self, index: u64) -> Option<&Object> {
+    pub fn try_get_object(&self, index: u64) -> Option<&Object> {
+        self.object_manager.try_get_object(index)
+    }
+    pub fn try_get_object_mut(&mut self, index: u64) -> Option<&mut Object> {
+        self.object_manager.try_get_object_mut(index)
+    }
+    pub fn get_object(&self, index: u64) -> &Object {
         self.object_manager.get_object(index)
     }
-    pub fn get_object_mut(&mut self, index: u64) -> Option<&mut Object> {
+    pub fn get_object_mut(&mut self, index: u64) -> &mut Object {
         self.object_manager.get_object_mut(index)
     }
 
