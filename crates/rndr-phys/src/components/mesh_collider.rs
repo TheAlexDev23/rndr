@@ -7,10 +7,9 @@ use rndr_core::object::{Component, Object, ObjectManager};
 use rndr_math::prelude::{M3x3, Vertex};
 use rndr_math::vector::V3;
 
-use crate::collision::Collidable;
-use crate::prelude::HitInfo;
-use crate::raycast::ObjectIntersectionRay;
-use crate::raycast::Raycastable;
+use crate::ray::ObjectIntersectionRay;
+use crate::traits::collidable::IntersectionPoint;
+use crate::traits::{Collidable, HitInfo, Raycastable};
 
 use super::SphereCollider;
 
@@ -42,7 +41,7 @@ impl MeshCollider {
 }
 
 impl Raycastable for MeshCollider {
-    fn ray_intersects(
+    fn get_all_ray_intersections(
         &self,
         object_manager: &ObjectManager,
         start: V3,
@@ -107,7 +106,8 @@ impl Raycastable for MeshCollider {
             let vertex = Vertex::interpolate((a_v, u), (b_v, v), (c_v, w));
 
             ret.push(HitInfo {
-                vertex,
+                position: vertex.position,
+                normal: vertex.normal,
                 distance: t,
             });
         }
@@ -120,7 +120,7 @@ impl Collidable for MeshCollider {
         &self,
         other: &MeshCollider,
         object_manager: &ObjectManager,
-    ) -> Option<Vertex> {
+    ) -> Option<IntersectionPoint> {
         let self_mesh = self.get_mesh(object_manager);
         let self_transform = self.get_transform(object_manager);
         let self_mesh_center = self_mesh.calculate_center(self_transform);
@@ -141,10 +141,11 @@ impl Collidable for MeshCollider {
             };
 
             let intersects = ray.cast(object_manager);
-            if intersects.len() != 0 {
-                let mut v = intersects.first().unwrap().vertex;
-                v.normal *= -1.0;
-                return Some(v);
+            if let Some(intersect) = intersects.first() {
+                return Some(IntersectionPoint {
+                    position: intersect.position,
+                    normal: intersect.normal * -1.0,
+                });
             }
 
             None
@@ -155,7 +156,7 @@ impl Collidable for MeshCollider {
         &self,
         _other: &SphereCollider,
         _object_manager: &ObjectManager,
-    ) -> Option<Vertex> {
+    ) -> Option<IntersectionPoint> {
         todo!()
     }
 }

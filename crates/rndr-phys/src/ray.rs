@@ -1,35 +1,8 @@
 use rndr_core::object::{Object, ObjectManager};
+use rndr_math::vector::V3;
 
-use rndr_math::prelude::{Vertex, V3};
-
-use crate::components::{MeshCollider, SphereCollider};
-
-#[derive(Debug)]
-pub struct HitInfo {
-    pub vertex: Vertex,
-    pub distance: f32,
-}
-
-/// Represents an object intersectable by a ray
-pub trait Raycastable {
-    fn ray_intersects(
-        &self,
-        object_manager: &ObjectManager,
-        start: V3,
-        dir: V3,
-        max_distance: Option<f32>,
-    ) -> Vec<HitInfo>;
-}
-
-fn get_raycastable(object: &Object) -> Option<&dyn Raycastable> {
-    if let Some(r) = object.try_component::<MeshCollider>() {
-        return Some(r);
-    }
-    if let Some(r) = object.try_component::<SphereCollider>() {
-        return Some(r);
-    }
-    None
-}
+use crate::traits::raycastable::get_raycastable;
+use crate::traits::HitInfo;
 
 pub struct Ray<'a> {
     pub start: V3,
@@ -48,7 +21,7 @@ impl<'a> Ray<'a> {
                 None => continue,
             };
 
-            intersects.extend(raycastable.ray_intersects(
+            intersects.extend(raycastable.get_all_ray_intersections(
                 &self.objects,
                 self.start,
                 self.dir,
@@ -73,6 +46,11 @@ pub struct ObjectIntersectionRay<'a> {
 impl<'a> ObjectIntersectionRay<'a> {
     pub fn cast(&self, object_manager: &ObjectManager) -> Vec<HitInfo> {
         let raycastable = get_raycastable(&self.object).unwrap();
-        raycastable.ray_intersects(object_manager, self.start, self.dir, self.max_distance)
+        raycastable.get_all_ray_intersections(
+            object_manager,
+            self.start,
+            self.dir,
+            self.max_distance,
+        )
     }
 }

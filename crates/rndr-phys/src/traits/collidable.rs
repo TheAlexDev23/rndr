@@ -1,8 +1,14 @@
 use rndr_core::object::{Object, ObjectManager};
 
-use rndr_math::prelude::Vertex;
+use rndr_math::prelude::V3;
 
 use crate::components::{MeshCollider, SphereCollider};
+
+pub struct IntersectionPoint {
+    pub position: V3,
+    /// Collision normal. Exclusively from object 1 to object 2.
+    pub normal: V3,
+}
 
 /// Represents an object that can intersect with another
 pub trait Collidable {
@@ -10,7 +16,7 @@ pub trait Collidable {
         &self,
         collidable: DynamicCollidable,
         object_manager: &ObjectManager,
-    ) -> Option<Vertex> {
+    ) -> Option<IntersectionPoint> {
         match collidable {
             DynamicCollidable::Mesh(collider) => self.intersects_mesh(collider, object_manager),
             DynamicCollidable::Sphere(collider) => self.intersects_sphere(collider, object_manager),
@@ -20,12 +26,12 @@ pub trait Collidable {
         &self,
         other: &MeshCollider,
         object_manager: &ObjectManager,
-    ) -> Option<Vertex>;
+    ) -> Option<IntersectionPoint>;
     fn intersects_sphere(
         &self,
         other: &SphereCollider,
         object_manager: &ObjectManager,
-    ) -> Option<Vertex>;
+    ) -> Option<IntersectionPoint>;
 }
 
 pub enum DynamicCollidable<'a> {

@@ -1,8 +1,4 @@
-pub mod collision;
 pub mod components;
-pub mod raycast;
+pub mod ray;
 pub mod systems;
-
-pub mod prelude {
-    pub use super::raycast::*;
-}
+pub mod traits;

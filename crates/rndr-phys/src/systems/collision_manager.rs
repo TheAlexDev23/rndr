@@ -1,13 +1,9 @@
 use rndr_core::object::ObjectManager;
 
-use rndr_math::prelude::V3;
-
-use crate::collision;
+use crate::traits::collidable::{self, IntersectionPoint};
 
 pub struct CollisionInfo {
-    pub position: V3,
-    /// Collision normal. Exclusively from object 1 to object 2.
-    pub normal: V3,
+    pub intersection_point: IntersectionPoint,
     pub obj_1: u64,
     pub obj_2: u64,
 }
@@ -21,7 +17,7 @@ impl CollisionManager {
         let mut all_hits = Vec::new();
         for object in object_manager.objects_iter() {
             let object_id = object.id();
-            let collidable = collision::get_trait_collidable(object);
+            let collidable = collidable::get_trait_collidable(object);
             if collidable.is_none() {
                 continue;
             }
@@ -31,7 +27,7 @@ impl CollisionManager {
                 if collision_comparator_id == object_id {
                     continue;
                 }
-                let other = collision::get_dynamic_collidable(collision_comparator);
+                let other = collidable::get_dynamic_collidable(collision_comparator);
                 if other.is_none() {
                     continue;
                 }
@@ -43,14 +39,13 @@ impl CollisionManager {
                     continue;
                 }
 
-                if let Some(hit) = collidable
+                if let Some(intersection_point) = collidable
                     .unwrap()
                     .intersects_dynamic_collidable(other.unwrap(), object_manager)
                 {
                     calculated_hits.push((object_id, collision_comparator_id));
                     all_hits.push(CollisionInfo {
-                        position: hit.position,
-                        normal: hit.normal,
+                        intersection_point,
                         obj_1: object_id,
                         obj_2: collision_comparator_id,
                     });

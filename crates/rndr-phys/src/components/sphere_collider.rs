@@ -3,10 +3,10 @@ use std::any::TypeId;
 use rndr_core::default_components::Transform;
 use rndr_core::object::{Component, ObjectManager};
 
-use rndr_math::prelude::{Vertex, V3};
+use rndr_math::prelude::V3;
 
-use crate::collision::Collidable;
-use crate::raycast::{HitInfo, Raycastable};
+use crate::traits::collidable::IntersectionPoint;
+use crate::traits::{Collidable, HitInfo, Raycastable};
 
 use super::MeshCollider;
 
@@ -35,7 +35,7 @@ impl Component for SphereCollider {
 }
 
 impl Raycastable for SphereCollider {
-    fn ray_intersects(
+    fn get_all_ray_intersections(
         &self,
         object_manager: &ObjectManager,
         start: V3,
@@ -72,13 +72,12 @@ impl Raycastable for SphereCollider {
                     continue;
                 }
             }
+            let position = start + dir * hit;
+            let normal = (position - self_position).norm();
             ret.push(HitInfo {
                 distance: hit,
-                vertex: Vertex {
-                    position: start + dir * hit,
-                    color: [255; 3],
-                    ..Default::default()
-                },
+                position,
+                normal,
             })
         }
         ret
@@ -90,7 +89,7 @@ impl Collidable for SphereCollider {
         &self,
         _other: &MeshCollider,
         _object_manager: &ObjectManager,
-    ) -> Option<Vertex> {
+    ) -> Option<IntersectionPoint> {
         todo!()
     }
 
@@ -98,7 +97,7 @@ impl Collidable for SphereCollider {
         &self,
         _other: &SphereCollider,
         _object_manager: &ObjectManager,
-    ) -> Option<Vertex> {
+    ) -> Option<IntersectionPoint> {
         todo!()
     }
 }

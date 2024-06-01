@@ -52,16 +52,20 @@ impl PhysicsManager {
             let tr1 = obj1.component::<Transform>();
             let tr2 = obj2.component::<Transform>();
 
-            let collision_offset1 = collision.position - mesh1.calculate_center(tr1);
-            let collision_offset2 = collision.position - mesh2.calculate_center(tr2);
+            let collision_offset1 =
+                collision.intersection_point.position - mesh1.calculate_center(tr1);
+            let collision_offset2 =
+                collision.intersection_point.position - mesh2.calculate_center(tr2);
 
             let f1 = rb1.linear_velocity / dt * rb1.mass
                 - rb1.angular_velocity.cross(collision_offset1) / dt * rb1.mass;
             let f2 = rb2.linear_velocity / dt * rb2.mass
                 - rb2.angular_velocity.cross(collision_offset2) / dt * rb2.mass;
 
-            let f1 = f1.dot(collision.normal) * collision.normal;
-            let f2 = f2.dot(collision.normal) * collision.normal;
+            let f1 =
+                f1.dot(collision.intersection_point.normal) * collision.intersection_point.normal;
+            let f2 =
+                f2.dot(collision.intersection_point.normal) * collision.intersection_point.normal;
 
             let rb1 = object_manager
                 .get_object_mut(collision.obj_1)

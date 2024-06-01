@@ -85,7 +85,7 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
         } => {
             match keycode {
                 Keycode::Backspace => {
-                    let ray = rndr_phys::raycast::Ray {
+                    let ray = rndr_phys::ray::Ray {
                         start: cam_transform.position,
                         dir: cam_transform.fwd(),
                         max_distance: None,
@@ -96,9 +96,8 @@ fn handle_input_event(event: Event, instance: &mut Instance) {
 
                     if let Some(hit) = out {
                         println!("{hit:?}");
-                        let vert = hit.vertex;
                         let transform = Transform {
-                            position: vert.position,
+                            position: hit.position,
                             rotation: V3::default(),
                         };
 
