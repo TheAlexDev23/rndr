@@ -45,8 +45,6 @@ impl PhysicsManager {
             let rb1 = obj1.component::<Rigidbody>();
             let rb2 = obj2.component::<Rigidbody>();
 
-            // TODO: some might not have mesh renderable, add function to collidable trait for the center
-
             let mesh1 = obj1.component::<MeshRenderable>();
             let mesh2 = obj2.component::<MeshRenderable>();
 
@@ -64,16 +62,16 @@ impl PhysicsManager {
             let n1 = p1.dot(collision.normal) * collision.normal;
             let n2 = p2.dot(collision.normal) * collision.normal;
 
-            let n_total = n1 - n2;
+            let n_total = n1.mag() + n2.mag();
 
             let tang1 = p1 - n1;
             let tang2 = p2 - n2;
 
-            let f1s = n_total.mag() * rb1.static_friction;
-            let f2s = n_total.mag() * rb2.static_friction;
+            let f1s = n_total * rb1.static_friction;
+            let f2s = n_total * rb2.static_friction;
 
-            let f1d = n_total.mag() * rb1.dynamic_friction;
-            let f2d = n_total.mag() * rb2.dynamic_friction;
+            let f1d = n_total * rb1.dynamic_friction;
+            let f2d = n_total * rb2.dynamic_friction;
 
             let f1 = if tang1.mag() <= f1s {
                 -tang1
