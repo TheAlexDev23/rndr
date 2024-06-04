@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 use crate::prelude::M3x3;
@@ -43,9 +43,9 @@ impl V3 {
 
     pub fn cross(&self, other: V3) -> V3 {
         V3::new(
-            self.y * other.z - other.y * other.z,
-            -1.0 * (self.x * other.z - other.x * self.z),
-            self.x * other.y - other.x * self.y,
+            self.y * other.z - self.z * other.y,
+            self.z * other.x - self.x * other.z,
+            self.x * other.y - self.y * other.x,
         )
     }
 
@@ -63,6 +63,10 @@ impl V3 {
 
     pub fn all_elements_sum(&self) -> f32 {
         self.x + self.y + self.z
+    }
+
+    pub fn inverse(&self) -> V3 {
+        V3::new(self.x.powi(-1), self.y.powi(-1), self.z.powi(-1))
     }
 
     /// Handle the V3 as a 3D point and rotate by `angle`, where angle is not a 3d point
@@ -92,7 +96,7 @@ impl V3 {
         let cos_y = y.to_radians().cos();
 
         M3x3::new([
-            V3::new(cos_a * cos_b, sin_a * cos_b, -1.0 * sin_b),
+            V3::new(cos_a * cos_b, sin_a * cos_b, -sin_b),
             V3::new(
                 cos_a * sin_b * sin_y - sin_a * cos_y,
                 sin_a * sin_b * sin_y + cos_a * cos_y,
@@ -190,6 +194,13 @@ impl Mul<V3> for f32 {
         rhs.y *= self;
         rhs.z *= self;
         rhs
+    }
+}
+
+impl Neg for V3 {
+    type Output = V3;
+    fn neg(self) -> Self::Output {
+        self * -1.0
     }
 }
 

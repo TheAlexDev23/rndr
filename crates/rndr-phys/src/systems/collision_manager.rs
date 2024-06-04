@@ -1,9 +1,12 @@
 use rndr_core::object::ObjectManager;
 
-use crate::traits::collidable::{self, IntersectionPoint};
+use rndr_math::prelude::V3;
+
+use crate::traits::collidable::{self};
 
 pub struct CollisionInfo {
-    pub intersection_point: IntersectionPoint,
+    pub position: V3,
+    pub normal: V3,
     pub obj_1: u64,
     pub obj_2: u64,
 }
@@ -45,7 +48,8 @@ impl CollisionManager {
                 {
                     calculated_hits.push((object_id, collision_comparator_id));
                     all_hits.push(CollisionInfo {
-                        intersection_point,
+                        position: intersection_point.position,
+                        normal: intersection_point.normal,
                         obj_1: object_id,
                         obj_2: collision_comparator_id,
                     });

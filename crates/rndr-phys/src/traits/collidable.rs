@@ -6,7 +6,7 @@ use crate::components::{MeshCollider, SphereCollider};
 
 pub struct IntersectionPoint {
     pub position: V3,
-    /// Collision normal. Exclusively from object 1 to object 2.
+    /// Collision normal. Should be the collision normal of the object being checked not the "other" object.
     pub normal: V3,
 }
 

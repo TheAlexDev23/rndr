@@ -147,16 +147,11 @@ impl MeshRendererSystem {
         let width = (width / 2) as f32;
         let height = (height / 2) as f32;
 
-        let x_start = first.0.min(second.0).min(third.0).max(-1.0 * width).round() as i32;
+        let x_start = first.0.min(second.0).min(third.0).max(-width).round() as i32;
 
         let x_end = first.0.max(second.0).max(third.0).min(width).round() as i32;
 
-        let y_start = first
-            .1
-            .min(second.1)
-            .min(third.1)
-            .max(-1.0 * height)
-            .round() as i32;
+        let y_start = first.1.min(second.1).min(third.1).max(-height).round() as i32;
 
         let y_end = first.1.max(second.1).max(third.1).min(height).round() as i32;
 

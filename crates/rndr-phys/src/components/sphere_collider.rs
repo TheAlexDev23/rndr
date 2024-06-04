@@ -54,12 +54,12 @@ impl Raycastable for SphereCollider {
 
         let discr = b.powi(2) - (4.0 * a * c);
         let hits = if discr.abs() < f32::EPSILON {
-            vec![(-1.0 * b) / (2.0 * a)]
+            vec![(-b) / (2.0 * a)]
         } else if discr < 0.0 {
             Vec::new()
         } else {
             let sqrt = discr.sqrt();
-            vec![(-1.0 * b + sqrt) / (2.0 * a), (-1.0 * b - sqrt) / (2.0 * a)]
+            vec![(-b + sqrt) / (2.0 * a), (-b - sqrt) / (2.0 * a)]
         };
 
         let mut ret = Vec::new();
@@ -95,9 +95,26 @@ impl Collidable for SphereCollider {
 
     fn intersects_sphere(
         &self,
-        _other: &SphereCollider,
-        _object_manager: &ObjectManager,
+        other: &SphereCollider,
+        object_manager: &ObjectManager,
     ) -> Option<IntersectionPoint> {
-        todo!()
+        let self_position = object_manager
+            .get_object(self.owner.unwrap())
+            .component::<Transform>()
+            .position;
+
+        let other_position = object_manager
+            .get_object(other.owner.unwrap())
+            .component::<Transform>()
+            .position;
+
+        if (self_position - other_position).mag() <= self.radius + other.radius {
+            return Some(IntersectionPoint {
+                normal: (other_position - self_position).norm(),
+                position: self_position + (other_position - self_position) / 2.0,
+            });
+        } else {
+            None
+        }
     }
 }

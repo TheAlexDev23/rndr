@@ -32,15 +32,15 @@ impl M3x3 {
         }
 
         let mut a_ = e * i - f * h;
-        let mut b_ = -1.0 * (d * i - f * g);
+        let mut b_ = -(d * i - f * g);
         let mut c_ = d * h - e * g;
 
-        let mut d_ = -1.0 * (b * i - c * h);
+        let mut d_ = -(b * i - c * h);
         let mut e_ = a * i - c * g;
-        let mut f_ = -1.0 * (a * h - b * g);
+        let mut f_ = -(a * h - b * g);
 
         let mut g_ = b * f - c * e;
-        let mut h_ = -1.0 * (a * f - c * d);
+        let mut h_ = -(a * f - c * d);
         let mut i_ = a * e - b * d;
 
         let mult = 1.0 / determinant;

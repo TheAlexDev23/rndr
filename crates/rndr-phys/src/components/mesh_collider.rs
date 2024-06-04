@@ -79,7 +79,7 @@ impl Raycastable for MeshCollider {
             let b = b_v.position;
             let c = c_v.position;
 
-            let conversion_matrix = M3x3::new([b - a, c - a, -1.0 * dir]).inv();
+            let conversion_matrix = M3x3::new([b - a, c - a, -dir]).inv();
 
             if conversion_matrix.is_none() {
                 continue;
