@@ -56,16 +56,10 @@ impl PhysicsManager {
             let collision_offset1 = collision.position - mesh1.calculate_center(tr1);
             let collision_offset2 = collision.position - mesh2.calculate_center(tr2);
 
-            let p1 = rb1.linear_velocity * rb1.mass
-                + rb1
-                    .angular_velocity
-                    .cross(collision_offset1)
-                    .hadamard_product(rb1.inertia_tensor);
-            let p2 = rb2.linear_velocity * rb2.mass
-                + rb2
-                    .angular_velocity
-                    .cross(collision_offset2)
-                    .hadamard_product(rb2.inertia_tensor);
+            let p1 =
+                (rb1.linear_velocity + rb1.angular_velocity.cross(collision_offset1)) * rb1.mass;
+            let p2 =
+                (rb2.linear_velocity + rb2.angular_velocity.cross(collision_offset2)) * rb2.mass;
 
             let n1 = p1.dot(collision.normal) * collision.normal;
             let n2 = p2.dot(collision.normal) * collision.normal;

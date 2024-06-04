@@ -25,8 +25,7 @@ fn main() {
 
     let mut obj = default_objects::mesh_from_file("../Sphere.obj").expect("Could not load mesh");
 
-    let tr = obj.component_mut::<Transform>();
-    tr.position = V3::new(3.0, 1.2, 3.0);
+    obj.component_mut::<Transform>().position = V3::new(3.0, 1.2, 3.0);
     obj.add_component(SphereCollider::new(1.0).into());
     obj.add_component(Rigidbody::new_with_gravity(100.0).into());
     obj.component_mut::<Rigidbody>().angular_velocity = V3::new(-200.0, 0.0, 0.0);
@@ -40,8 +39,7 @@ fn main() {
     instance.register_object(obj);
 
     let mut obj = default_objects::mesh_from_file("../Sphere.obj").expect("Could not load mesh");
-    let tr = obj.component_mut::<Transform>();
-    tr.position = V3::new(3.0, -1.2, 3.0);
+    obj.component_mut::<Transform>().position = V3::new(3.0, -1.2, 3.0);
     obj.add_component(SphereCollider::new(1.0).into());
     obj.add_component(Rigidbody::new_with_gravity(100.0).into());
     obj.component_mut::<Rigidbody>().angular_velocity = V3::new(200.0, 0.0, 0.0);
@@ -83,13 +81,7 @@ fn main() {
             handle_input_event(event, &mut instance);
         }
 
-        instance.render().expect(
-            "Could n                    instance
-                        .object_manager
-                        .get_object_mut(0)
-                        .component_mut::<Rigidbody>()
-                        .lock_movement = true;ot render",
-        );
+        instance.render().expect("Could not render");
         instance.apply_render().expect("Could not apply render");
         frames += 1;
     }
